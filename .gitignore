@@ -1,0 +1,14 @@
+*.o
+*~
+*.Po
+*.in
+Makefile
+autom4te.cache/*
+config.log
+config.status
+configure
+src/config.h
+src/conn-marshallers.c
+src/conn-marshallers.h
+src/connection
+src/stamp-h1
