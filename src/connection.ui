@@ -7,9 +7,9 @@
     <property name="window_position">center</property>
     <property name="default_width">800</property>
     <property name="default_height">600</property>
-    <signal name="delete_event" handler="ui_quit"/>
+    <signal name="delete_event" handler="ui_signal_quit"/>
     <child>
-      <object class="GtkVBox" id="box">
+      <object class="GtkVBox" id="vbox">
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
         <child>
@@ -65,7 +65,7 @@
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Export</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="ui_export"/>
+                        <signal name="activate" handler="ui_signal_export"/>
                       </object>
                     </child>
                     <child>
@@ -79,7 +79,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="ui_quit"/>
+                        <signal name="activate" handler="ui_signal_quit"/>
                       </object>
                     </child>
                   </object>
@@ -151,7 +151,7 @@
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="ui_about"/>
+                        <signal name="activate" handler="ui_signal_about"/>
                       </object>
                     </child>
                   </object>
@@ -165,7 +165,25 @@
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkHBox" id="box">
+            <property name="visible">True</property>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkStatusbar" id="statusbar">
+            <property name="visible">True</property>
+            <property name="spacing">2</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">2</property>
+          </packing>
         </child>
       </object>
     </child>
