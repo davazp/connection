@@ -200,30 +200,26 @@ hex_move (hex_t hex, uint i, uint j)
   if (hex_cell_free_p(hex, i, j) || hex->count == 1)
     {
       int player = hex->player;
-      int t;
+      int size = hex->size;
       int neighbors[6][2] = {{+1, 0}, {+1, +1}, {0, +1},
                              {-1, 0}, {-1, -1}, {0, -1}};
+      int t;
       CELL(hex,i,j).player = player;
       hex->player = player%2 + 1;
       hex->count++;
       /* Borders are connected for each user. */
       if (player == 1)
         {
-          if (j == 0)
-            CELL(hex,i,j).a_connected = 1;
-          else if (j == hex->size-1)
-            CELL(hex,i,j).z_connected = 1;
+          CELL(hex,i,j).a_connected = (j == 0);
+          CELL(hex,i,j).z_connected = (j == size-1);
         }
       else
         {
-          if (i == 0)
-            CELL(hex,i,j).a_connected = 1;
-          else if (i == hex->size-1)
-            CELL(hex,i,j).z_connected = 1;
+          CELL(hex,i,j).a_connected = (i == 0);
+          CELL(hex,i,j).z_connected = (i == size-1);
         }
-
-      /* Connection propagation. If some adjacent cell is a-connected
-         (resp. z-connected), then the cell is a-connected
+      /* Inherit connection properties. If some adjacent cell is
+         a-connected (resp. z-connected), then the cell is a-connected
          (resp. z-connected). */
       for (t=0; t<6; t++)
         {
@@ -238,16 +234,13 @@ hex_move (hex_t hex, uint i, uint j)
               CELL(hex, i, j).z_connected |= CELL(hex, i1, j1).z_connected;
             }
         }
-
       /* Propagate connection properties */
       expand_a_connection (hex, i, j);
       expand_z_connection (hex, i, j);
 
       /* Check game over */
       if (CELL(hex,i,j).a_connected && CELL(hex,i,j).z_connected)
-        {
-          hex->end_of_game_p = 1;
-        }
+        hex->end_of_game_p = 1;
 
       return HEX_SUCCESS;
     }
