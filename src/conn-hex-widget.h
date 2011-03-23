@@ -57,6 +57,9 @@ GtkWidget * hexboard_new (void);
 gboolean hexboard_set_color (Hexboard * board, gint i, gint j,
                              double r, double g, double b);
 
+gboolean hexboard_save_as_image (Hexboard * hex, const char * filename,
+                                 const char * type, guint width, guint height);
+
 #endif  /* CONN_HEX_WIDGET_H */
 
 /* conn-hex-widget.h ends here */

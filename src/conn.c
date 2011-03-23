@@ -20,6 +20,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <gtk/gtk.h>
 #include <math.h>
 #include "conn-utils.h"
@@ -28,6 +29,8 @@
 
 #define GET_OBJECT(obj) (GTK_WIDGET(gtk_builder_get_object (builder, (obj))))
 static GtkBuilder * builder;
+
+GtkWidget * hexboard;
 
 gboolean
 ui_about (GtkWidget * window, gpointer data)
@@ -63,12 +66,74 @@ ui_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
 }
 
 
+gboolean
+ui_export (gpointer data)
+{
+  GtkWidget *dialog;
+  GtkWidget *window = GET_OBJECT("window");
+  GtkFileFilter * filter_auto;
+  GtkFileFilter * filter_pdf;
+  GtkFileFilter * filter_svg;
+  GtkFileFilter * filter_png;
+
+  dialog = gtk_file_chooser_dialog_new ("Export",
+                                        GTK_WINDOW(window),
+                                        GTK_FILE_CHOOSER_ACTION_SAVE,
+                                        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                        GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+                                        NULL);
+  /* Set filters */
+  filter_auto = gtk_file_filter_new();
+  filter_pdf = gtk_file_filter_new();
+  filter_svg = gtk_file_filter_new();
+  filter_png = gtk_file_filter_new();
+  gtk_file_filter_add_pattern (filter_auto, "*");
+  gtk_file_filter_add_mime_type (filter_pdf, "application/pdf");
+  gtk_file_filter_add_mime_type (filter_svg, "image/svg+xml");
+  gtk_file_filter_add_mime_type (filter_png, "image/png");
+  gtk_file_filter_set_name (filter_pdf, "Portable Document Format (PDF)");
+  gtk_file_filter_set_name (filter_svg, "Scalable Vector Graphcis (SVG)");
+  gtk_file_filter_set_name (filter_png, "Portable Networks Graphcis (PNG)");
+  gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_png);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_pdf);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_svg);
+
+  if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+    {
+      char *filename;
+      gint width, height;
+      GtkFileFilter * filter;
+      char * ext;
+
+      filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (dialog));
+      gdk_window_get_size (hexboard->window, &width, &height);
+
+      if (filter == filter_pdf)
+        ext = "pdf";
+      else if (filter == filter_png)
+        ext = "png";
+      else if (filter == filter_svg)
+        ext = "svg";
+      else
+        conn_fatal ("Show messagebox error here.");
+
+      /* TODO: Error checking here. */
+
+      g_free (filename);
+    }
+
+  gtk_widget_destroy (dialog);
+}
+
+
+
 int
 main (int argc, char * argv[])
 {
   GtkWidget * window;
   GtkWidget * box;
-  GtkWidget * hexboard;
   GtkWidget * about;
   hex_t game;
 

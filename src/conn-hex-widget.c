@@ -19,8 +19,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <gtk/gtk.h>
 #include <math.h>
+#include <gtk/gtk.h>
+#include <cairo.h>
+#include <cairo-pdf.h>
+#include <cairo-svg.h>
 #include "conn-hex-widget.h"
 #include "conn-marshallers.h"
 
@@ -457,6 +460,39 @@ hexboard_set_color (Hexboard * board, gint i, gint j, double r, double g, double
   st->cell_colors[i][j].g = g;
   st->cell_colors[i][j].b = b;
   gtk_widget_queue_draw (GTK_WIDGET (board));
+  return TRUE;
+}
+
+
+gboolean
+hexboard_save_as_image (Hexboard * hex, const char * filename, const char * type,
+                        guint width, guint height)
+{
+  cairo_t *cr;
+  cairo_surface_t * surf;
+  if (!strcasecmp (type, "pdf"))
+    surf = cairo_pdf_surface_create (filename, width, height);
+  else if (!strcasecmp (type, "svg"))
+    surf = cairo_svg_surface_create (filename, width, height);
+  else if (!strcasecmp (type, "png"))
+    surf = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+  else
+    surf = NULL;
+
+  printf ("---\nDEBUG: %s\n-----", type);
+
+  if (surf == NULL)
+    return FALSE;
+
+  cr = cairo_create (surf);
+  draw_board (hex, cr, width, height);
+  cairo_surface_flush (surf);
+
+  if (!strcasecmp (type, "png"))
+    cairo_surface_write_to_png (surf, filename);
+
+  cairo_surface_destroy(surf);
+  cairo_destroy(cr);
   return TRUE;
 }
 
