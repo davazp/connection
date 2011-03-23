@@ -53,11 +53,6 @@ ui_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
   hex_status_t status;
   player = hex_get_player (game);
   status = hex_move (game, i, j);
-  printf ("status=%u\n", status);
-  printf ("player=%u\n", player);
-  printf ("a-connected=%u\n", hex_cell_a_connected_p(game,i,j));
-  printf ("z-connected=%u\n", hex_cell_z_connected_p(game,i,j));
-  puts ("---");
   if (status == HEX_SUCCESS)
     hexboard_set_color (HEXBOARD(widget), i, j,
                         colors[player][0],

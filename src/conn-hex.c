@@ -156,7 +156,6 @@ expand_a_connection (hex_t hex, uint i, uint j)
       if (IN_BOARD_P (hex, i1, j1) && CELL(hex,i1, j1).player == player
           && CELL(hex,i, j).a_connected && !CELL(hex,i1, j1).a_connected)
         {
-          printf ("Propagate to (%d,%d)\n", i1, j1);
           CELL(hex,i1, j1).a_connected = 1;
           expand_a_connection (hex, i1, j1);
         }
