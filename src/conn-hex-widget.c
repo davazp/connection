@@ -479,8 +479,6 @@ hexboard_save_as_image (Hexboard * hex, const char * filename, const char * type
   else
     surf = NULL;
 
-  printf ("---\nDEBUG: %s\n-----", type);
-
   if (surf == NULL)
     return FALSE;
 
