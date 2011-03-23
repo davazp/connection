@@ -75,18 +75,18 @@ int
 hex_cell_player1_p (hex_t hex, uint i, uint j)
 {
   if (IN_BOARD_P(hex,i,j))
-    return -1;
-  else
     return CELL(hex, i, j).player == 1;
+  else
+    return -1;
 }
 
 int
 hex_cell_player2_p (hex_t hex, uint i, uint j)
 {
   if (IN_BOARD_P(hex,i,j))
-    return -1;
-  else
     return CELL(hex,i,j).player == 2;
+  else
+    return -1;
 }
 
 int
