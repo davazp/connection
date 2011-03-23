@@ -12,3 +12,5 @@ src/conn-marshallers.c
 src/conn-marshallers.h
 src/connection
 src/stamp-h1
+TAGS
+
