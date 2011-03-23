@@ -167,7 +167,7 @@ static void
 hexboard_init(Hexboard * hexboard)
 {
   HexboardPrivate * state = HEXBOARD_GET_PRIVATE (hexboard);
-  int size = 14;
+  int size = 13;
   int i,j;
   state->size = size;
   state->border = 30;
@@ -426,6 +426,9 @@ hexboard_expose(GtkWidget * widget, GdkEventExpose *event)
   gint width, height;
   gdk_window_get_size (GTK_WIDGET(hexboard)->window, &width, &height);
   cr = gdk_cairo_create (GTK_WIDGET(hexboard)->window);
+  /* Clip expose region */
+  cairo_rectangle (cr, event->area.x, event->area.y, event->area.width, event->area.height);
+  cairo_clip(cr);
   /* Background */
   cairo_set_source_rgb (cr, .8,.8,.8);
   cairo_paint (cr);
@@ -458,4 +461,4 @@ hexboard_set_color (Hexboard * board, gint i, gint j, double r, double g, double
 }
 
 
-/* end of conn-hex-widget.c */
+/* conn-hex-widget.c ends here */

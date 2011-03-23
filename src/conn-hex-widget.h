@@ -1,4 +1,4 @@
-/* conn-hex-widget.c --- Hex board implementation as GTK Widget. */
+/* conn-hex-widget.h --- Hex board implementation as GTK Widget. */
 
 /* Copyright (C) 2011 David Vázquez Púa  */
 
@@ -54,8 +54,7 @@ struct _HexboardClass {
 
 GtkType hexboard_get_type(void);
 GtkWidget * hexboard_new (void);
-gboolean hexboard_set_color (Hexboard * board,
-                             gint i, gint j,
+gboolean hexboard_set_color (Hexboard * board, gint i, gint j,
                              double r, double g, double b);
 
 #endif  /* CONN_HEX_WIDGET_H */
