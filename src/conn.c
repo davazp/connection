@@ -43,7 +43,7 @@ ui_error (const gchar *fmt, ...)
   va_start (va,fmt);
   vsnprintf (buffer, sizeof(buffer), fmt, va);
   window = GET_OBJECT("window");
-  g_warning (buffer);
+  g_logv (G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, va);
   dialog = gtk_message_dialog_new (GTK_WINDOW(window),
                                    GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
                                    GTK_MESSAGE_ERROR,
@@ -156,6 +156,8 @@ ui_signal_export (gpointer data)
       gint width, height;
       GtkFileFilter * filter;
       char * ext;
+      gboolean successp;
+
       filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
       filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (dialog));
       gdk_window_get_size (hexboard->window, &width, &height);
@@ -166,6 +168,10 @@ ui_signal_export (gpointer data)
         ext = "png";
       else if (filter == filter_svg)
         ext = "svg";
+
+      successp = hexboard_save_as_image (HEXBOARD(hexboard), filename, ext, width, height);
+      if (!successp)
+        ui_error ("An error ocurred while export the board.");
 
       g_free (filename);
     }
