@@ -23,9 +23,9 @@
 #include "conn-hex.h"
 
 struct hex_cell_s {
-  int a_connected : 1;
-  int z_connected : 1;
-  int player : 3;
+  unsigned int a_connected : 1;
+  unsigned int z_connected : 1;
+  unsigned int player : 2;
 };
 
 struct hex_s
