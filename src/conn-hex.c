@@ -18,6 +18,7 @@
  * along with Connection.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include "conn-utils.h"
 #include "conn-hex.h"
@@ -60,6 +61,16 @@ hex_new (size_t size)
   hex->end_of_game_p = 0;
   hex->count = 0;
   return hex;
+}
+
+void
+hex_reset (hex_t hex)
+{
+  size_t size = hex->size;
+  memset (hex->board, 0, sizeof(struct hex_cell_s) * size * size);
+  hex->player = 1;
+  hex->end_of_game_p = 0;
+  hex->count = 0;
 }
 
 void

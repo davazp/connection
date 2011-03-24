@@ -33,6 +33,7 @@ typedef enum {
 
 /* Construction and destruction */
 hex_t hex_new (size_t size);
+void hex_reset (hex_t hex);
 void hex_free (hex_t hex);
 
 /* Gaming */

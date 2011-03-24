@@ -29,9 +29,14 @@
 #include "conn-hex-widget.h"
 
 #define UI_BUILDER_FILENAME "./connection.ui"
+
 #define GET_OBJECT(obj) (GTK_WIDGET(gtk_builder_get_object (builder, (obj))))
+
+/* Global variables */
 static GtkBuilder * builder;
 GtkWidget * hexboard;
+hex_t game;
+
 
 void
 ui_error (const gchar *fmt, ...)
@@ -80,45 +85,36 @@ ui_message (char * fmt, ...)
 /* Signals */
 
 
-gboolean
-ui_signal_about (GtkWidget * window, gpointer data)
+void
+ui_signal_new (GtkMenuItem * item, gpointer data)
+{
+  int i,j;
+  size_t size;
+  size = hexboard_get_size (HEXBOARD (hexboard));
+  hex_reset (game);
+  for(j=0; j<size; j++)
+    {
+      for(i=0; i<size; i++)
+        hexboard_set_color (HEXBOARD(hexboard), i, j, 1, 1, 1);
+    }
+}
+
+void
+ui_signal_about (GtkMenuItem * item, gpointer data)
 {
   GtkWidget * dialog = GET_OBJECT ("about");
   gtk_dialog_run (GTK_DIALOG (dialog));
   gtk_widget_hide (dialog);
 }
 
-
-gboolean
-ui_signal_quit (GtkWidget * window, gpointer data)
+void
+ui_signal_quit (GtkMenuItem * item, gpointer data)
 {
   gtk_main_quit();
-  return TRUE;
 }
-
 
 void
-ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
-{
-  double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
-  int player;
-  hex_status_t status;
-  player = hex_get_player (game);
-  status = hex_move (game, i, j);
-  if (status == HEX_SUCCESS)
-    {
-      hexboard_set_color (HEXBOARD(widget), i, j,
-                          colors[player][0],
-                          colors[player][1],
-                          colors[player][2]);
-    }
-  else
-    gdk_beep();
-}
-
-
-gboolean
-ui_signal_export (gpointer data)
+ui_signal_export (GtkMenuItem * item, gpointer data)
 {
   GtkWidget *dialog;
   GtkWidget *window = GET_OBJECT("window");
@@ -180,6 +176,26 @@ ui_signal_export (gpointer data)
 }
 
 
+void
+ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
+{
+  double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
+  int player;
+  hex_status_t status;
+  player = hex_get_player (game);
+  status = hex_move (game, i, j);
+  if (status == HEX_SUCCESS)
+    {
+      hexboard_set_color (HEXBOARD(widget), i, j,
+                          colors[player][0],
+                          colors[player][1],
+                          colors[player][2]);
+    }
+  else
+    gdk_beep();
+}
+
+
 
 int
 main (int argc, char * argv[])
@@ -187,7 +203,6 @@ main (int argc, char * argv[])
   GtkWidget * box;
   GtkWidget * about;
   GtkWidget * window;
-  hex_t game;
 
   gtk_init (&argc, &argv);
   builder = gtk_builder_new();

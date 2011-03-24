@@ -449,6 +449,12 @@ hexboard_new (void)
   return widget;
 }
 
+size_t
+hexboard_get_size (Hexboard * hex)
+{
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hex);
+  return st->size;
+}
 
 gboolean
 hexboard_set_color (Hexboard * board, gint i, gint j, double r, double g, double b)
