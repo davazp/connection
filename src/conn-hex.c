@@ -394,14 +394,17 @@ hex_move (hex_t hex, uint i, uint j)
   hex_status_t status;
   unsigned int count;
   status = hex_put_cell (hex, hex->player, i, j);
-  hex->player = hex->player%2 + 1;
-  /* Truncate the 'future' history */
-  if (hex->history_count < hex->history_size)
-    recompute_connection (hex);
-  count = hex->history_count;
-  hex->history[count][0] = i;
-  hex->history[count][1] = j;
-  hex->history_size = ++hex->history_count;
+  if (status == HEX_SUCCESS)
+    {
+      hex->player = hex->player%2 + 1;
+      /* Truncate the 'future' history */
+      if (hex->history_count < hex->history_size)
+        recompute_connection (hex);
+      count = hex->history_count;
+      hex->history[count][0] = i;
+      hex->history[count][1] = j;
+      hex->history_size = ++hex->history_count;
+    }
   return status;
 }
 
