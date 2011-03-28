@@ -33,8 +33,15 @@ typedef enum {
 
 /* Construction and destruction */
 hex_t hex_new (size_t size);
+size_t hex_size (hex_t hex);
 void hex_reset (hex_t hex);
 void hex_free (hex_t hex);
+
+/* History */
+boolean hex_history_backward (hex_t hex);
+boolean hex_history_forward (hex_t hex);
+unsigned int hex_history_size (hex_t hex);
+unsigned int hex_history_count (hex_t hex);
 
 /* Gaming */
 hex_status_t hex_move (hex_t hex, uint i, uint j);
@@ -42,6 +49,7 @@ int hex_get_player (hex_t hex);
 boolean hex_end_of_game_p (hex_t hex);
 
 /* Examining the board */
+int hex_cell_player        (hex_t hex, uint i, uint j);
 int hex_cell_busy_p        (hex_t hex, uint i, uint j);
 int hex_cell_free_p        (hex_t hex, uint i, uint j);
 int hex_cell_player1_p     (hex_t hex, uint i, uint j);
