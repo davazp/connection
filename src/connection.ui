@@ -96,35 +96,21 @@
                   <object class="GtkMenu" id="menu2">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem6">
-                        <property name="label">gtk-cut</property>
+                      <object class="GtkImageMenuItem" id="menu-undo">
+                        <property name="label">gtk-undo</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
+                        <signal name="activate" handler="ui_signal_undo"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem7">
-                        <property name="label">gtk-copy</property>
+                      <object class="GtkImageMenuItem" id="menu-redo">
+                        <property name="label">gtk-redo</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem8">
-                        <property name="label">gtk-paste</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem9">
-                        <property name="label">gtk-delete</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <signal name="activate" handler="ui_signal_redo"/>
                       </object>
                     </child>
                   </object>
@@ -184,8 +170,10 @@
                 <property name="visible">True</property>
                 <property name="toolbar_style">icons</property>
                 <property name="show_arrow">False</property>
+                <property name="icon_size">2</property>
+                <property name="icon_size_set">True</property>
                 <child>
-                  <object class="GtkToolButton" id="button_history_first">
+                  <object class="GtkToolButton" id="button-history-first">
                     <property name="visible">True</property>
                     <property name="label" translatable="yes">toolbutton1</property>
                     <property name="use_underline">True</property>
@@ -198,7 +186,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkToolButton" id="button_history_backward">
+                  <object class="GtkToolButton" id="button-history-backward">
                     <property name="visible">True</property>
                     <property name="label" translatable="yes">toolbutton2</property>
                     <property name="use_underline">True</property>
@@ -211,7 +199,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkToolButton" id="button_history_forward">
+                  <object class="GtkToolButton" id="button-history-forward">
                     <property name="visible">True</property>
                     <property name="label" translatable="yes">toolbutton3</property>
                     <property name="use_underline">True</property>
@@ -224,7 +212,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkToolButton" id="button_history_last">
+                  <object class="GtkToolButton" id="button-history-last">
                     <property name="visible">True</property>
                     <property name="label" translatable="yes">toolbutton4</property>
                     <property name="use_underline">True</property>

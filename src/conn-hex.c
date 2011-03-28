@@ -141,6 +141,14 @@ hex_history_count (hex_t hex)
   return hex->history_count;
 }
 
+void
+hex_truncate_history (hex_t hex)
+{
+  hex->history_size = hex->history_count;
+}
+
+
+
 
 /* Examining the board */
 
@@ -403,7 +411,8 @@ hex_move (hex_t hex, uint i, uint j)
       count = hex->history_count;
       hex->history[count][0] = i;
       hex->history[count][1] = j;
-      hex->history_size = ++hex->history_count;
+      hex->history_count++;
+      hex_truncate_history (hex);
     }
   return status;
 }

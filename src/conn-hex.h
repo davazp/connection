@@ -42,6 +42,7 @@ boolean hex_history_backward (hex_t hex);
 boolean hex_history_forward (hex_t hex);
 unsigned int hex_history_size (hex_t hex);
 unsigned int hex_history_count (hex_t hex);
+void hex_truncate_history (hex_t hex);
 
 /* Gaming */
 hex_status_t hex_move (hex_t hex, uint i, uint j);

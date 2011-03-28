@@ -99,6 +99,7 @@ ui_signal_new (GtkMenuItem * item, gpointer data)
       for(i=0; i<size; i++)
         hexboard_set_color (HEXBOARD(hexboard), i, j, 1, 1, 1);
     }
+  update_history_buttons();
 }
 
 void
@@ -222,45 +223,59 @@ update_hexboard_colors (void)
 static void
 update_history_buttons (void)
 {
-  GtkWidget * first    = GET_OBJECT ("button_history_first");
-  GtkWidget * backward = GET_OBJECT ("button_history_backward");
-  GtkWidget * forward  = GET_OBJECT ("button_history_forward");
-  GtkWidget * last     = GET_OBJECT ("button_history_last");
+  GtkWidget * first    = GET_OBJECT ("button-history-first");
+  GtkWidget * backward = GET_OBJECT ("button-history-backward");
+  GtkWidget * forward  = GET_OBJECT ("button-history-forward");
+  GtkWidget * last     = GET_OBJECT ("button-history-last");
+  GtkWidget * undo     = GET_OBJECT ("menu-undo");
+  GtkWidget * redo     = GET_OBJECT ("menu-redo");
   size_t size;
   size_t count;
   size = hex_history_size (game);
   count = hex_history_count (game);
+  /* Set sensitive attributes to history buttons. */
   gtk_widget_set_sensitive (first,    count==0?    FALSE: TRUE);
   gtk_widget_set_sensitive (backward, count==0?    FALSE: TRUE);
   gtk_widget_set_sensitive (last,     count==size? FALSE: TRUE);
   gtk_widget_set_sensitive (forward,  count==size? FALSE: TRUE);
+  /* undo/redo */
+  gtk_widget_set_sensitive (undo, count==size? TRUE: FALSE);
+  gtk_widget_set_sensitive (redo, count==size? TRUE: FALSE);
 }
 
 
 void
 ui_signal_history_first (GtkToolButton * button, gpointer data)
 {
+  int size = hex_history_size(game);
   int count = hex_history_count(game);
   while (count--)
     hex_history_backward (game);
   update_hexboard_colors();
   update_history_buttons();
+
+  gtk_widget_set_sensitive (hexboard, size==0);
 }
 
 void
 ui_signal_history_backward (GtkToolButton * button, gpointer data)
 {
+  int size = hex_history_size (game);
   hex_history_backward (game);
   update_hexboard_colors();
   update_history_buttons();
+  gtk_widget_set_sensitive (hexboard, size==0);
 }
 
 void
 ui_signal_history_forward (GtkToolButton * button, gpointer data)
 {
+  int size = hex_history_size (game);
+  int count = hex_history_count (game);
   hex_history_forward (game);
   update_hexboard_colors();
   update_history_buttons();
+  gtk_widget_set_sensitive (hexboard, size==count);
 }
 
 void
@@ -272,6 +287,23 @@ ui_signal_history_last (GtkToolButton * button, gpointer data)
     hex_history_forward (game);
   update_hexboard_colors();
   update_history_buttons();
+  gtk_widget_set_sensitive (hexboard, size==count);
+}
+
+void
+ui_signal_undo (GtkMenuItem * item, gpointer data)
+{
+  hex_history_backward (game);
+  update_hexboard_colors();
+  gtk_widget_set_sensitive (hexboard, TRUE);
+}
+
+void
+ui_signal_redo (GtkMenuItem * item, gpointer data)
+{
+  hex_history_backward (game);
+  update_hexboard_colors();
+  gtk_widget_set_sensitive (hexboard, TRUE);
 }
 
 
@@ -294,7 +326,10 @@ main (int argc, char * argv[])
   game = hex_new (13);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);
   hexboard = hexboard_new();
-  g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked", G_CALLBACK(ui_signal_cell_clicked), game);
+  g_signal_connect (GTK_WIDGET(hexboard),
+                    "cell_clicked",
+                    G_CALLBACK(ui_signal_cell_clicked),
+                    game);
   gtk_container_add (GTK_CONTAINER(box), hexboard);
   gtk_widget_show_all (window);
 
