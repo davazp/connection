@@ -54,7 +54,7 @@ static hex_status_t hex_put_cell (hex_t hex, int player, uint i, uint j);
 #define CELL(hex,i,j) ((hex)->board[(j)*((hex)->size) + (i)])
 
 /* Check if there is a (i,j)-cell in the board HEX. */
-#define IN_BOARD_P(hex,i,j) (i>=0 && i<(hex)->size && j>=0 && j<=(hex)->size)
+#define IN_BOARD_P(hex,i,j) (i>=0 && i<(hex)->size && j>=0 && j<(hex)->size)
 
 
 /* Construction and destruction */
@@ -109,6 +109,8 @@ hex_history_backward (hex_t hex)
   i = hex->history[count][0];
   j = hex->history[count][1];
   CELL(hex,i,j).player = 0;
+  CELL(hex,i,j).a_connected = 0;
+  CELL(hex,i,j).z_connected = 0;
   hex->player = hex->player%2 + 1;
   recompute_connection (hex);
   return TRUE;

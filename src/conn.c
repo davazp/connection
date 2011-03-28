@@ -275,7 +275,7 @@ ui_signal_history_forward (GtkToolButton * button, gpointer data)
   hex_history_forward (game);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, size==count);
+  gtk_widget_set_sensitive (hexboard, size==count+1);
 }
 
 void
@@ -287,7 +287,7 @@ ui_signal_history_last (GtkToolButton * button, gpointer data)
     hex_history_forward (game);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, size==count);
+  gtk_widget_set_sensitive (hexboard, TRUE);
 }
 
 void
