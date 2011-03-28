@@ -37,6 +37,8 @@ static GtkBuilder * builder;
 GtkWidget * hexboard;
 hex_t game;
 
+static void update_hexboard_colors (void);
+static void update_history_buttons (void);
 
 void
 ui_error (const gchar *fmt, ...)
@@ -184,6 +186,7 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
   hex_status_t status;
   player = hex_get_player (game);
   status = hex_move (game, i, j);
+  update_history_buttons();
   if (status == HEX_SUCCESS)
     {
       hexboard_set_color (HEXBOARD(widget), i, j,
@@ -193,6 +196,82 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
     }
   else
     gdk_beep();
+}
+
+
+static void
+update_hexboard_colors (void)
+{
+  Hexboard * hex = HEXBOARD(hexboard);
+  double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
+  size_t size = hex_size (game);
+  int i, j;
+  for (j=0; j<size; j++)
+    {
+      for (i=0; i<size; i++)
+        {
+          int player = hex_cell_player (game, i, j);
+          hexboard_set_color (hex, i, j,
+                              colors[player][0],
+                              colors[player][1],
+                              colors[player][2]);
+        }
+    }
+}
+
+static void
+update_history_buttons (void)
+{
+  GtkWidget * first    = GET_OBJECT ("button_history_first");
+  GtkWidget * backward = GET_OBJECT ("button_history_backward");
+  GtkWidget * forward  = GET_OBJECT ("button_history_forward");
+  GtkWidget * last     = GET_OBJECT ("button_history_last");
+  size_t size;
+  size_t count;
+  size = hex_history_size (game);
+  count = hex_history_count (game);
+  gtk_widget_set_sensitive (first,    count==0?    FALSE: TRUE);
+  gtk_widget_set_sensitive (backward, count==0?    FALSE: TRUE);
+  gtk_widget_set_sensitive (last,     count==size? FALSE: TRUE);
+  gtk_widget_set_sensitive (forward,  count==size? FALSE: TRUE);
+}
+
+
+void
+ui_signal_history_first (GtkToolButton * button, gpointer data)
+{
+  int count = hex_history_count(game);
+  while (count--)
+    hex_history_backward (game);
+  update_hexboard_colors();
+  update_history_buttons();
+}
+
+void
+ui_signal_history_backward (GtkToolButton * button, gpointer data)
+{
+  hex_history_backward (game);
+  update_hexboard_colors();
+  update_history_buttons();
+}
+
+void
+ui_signal_history_forward (GtkToolButton * button, gpointer data)
+{
+  hex_history_forward (game);
+  update_hexboard_colors();
+  update_history_buttons();
+}
+
+void
+ui_signal_history_last (GtkToolButton * button, gpointer data)
+{
+  int size = hex_history_size(game);
+  int count = hex_history_count(game);
+  for (; count<size; count++)
+    hex_history_forward (game);
+  update_hexboard_colors();
+  update_history_buttons();
 }
 
 
@@ -218,6 +297,9 @@ main (int argc, char * argv[])
   g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked", G_CALLBACK(ui_signal_cell_clicked), game);
   gtk_container_add (GTK_CONTAINER(box), hexboard);
   gtk_widget_show_all (window);
+
+  update_history_buttons();
+
   gtk_main();
   hex_free (game);
 
