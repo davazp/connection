@@ -64,7 +64,7 @@ hex_new (size_t size)
   hex_t hex;
   hex = conn_malloc (sizeof(struct hex_s));
   hex->board = conn_malloc (size*size * sizeof(struct hex_cell_s));
-  hex->history = conn_malloc (sizeof(history_entry) * size);
+  hex->history = conn_malloc (sizeof(history_entry) * size * size);
   hex->size = size;
   hex_reset (hex);
   return hex;
@@ -75,7 +75,6 @@ hex_reset (hex_t hex)
 {
   size_t size = hex->size;
   memset (hex->board, 0, sizeof(struct hex_cell_s) * size * size);
-  memset (hex->history, 0, sizeof(history_entry) * size);
   hex->player = 1;
   hex->end_of_game_p = 0;
   hex->history_size  = 0;
@@ -411,6 +410,7 @@ hex_move (hex_t hex, uint i, uint j)
       count = hex->history_count;
       hex->history[count][0] = i;
       hex->history[count][1] = j;
+      hex->history[count][2] = hex->end_of_game_p;
       hex->history_count++;
       hex_truncate_history (hex);
     }

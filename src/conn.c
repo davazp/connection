@@ -301,7 +301,7 @@ ui_signal_undo (GtkMenuItem * item, gpointer data)
 void
 ui_signal_redo (GtkMenuItem * item, gpointer data)
 {
-  hex_history_backward (game);
+  hex_history_forward (game);
   update_hexboard_colors();
   gtk_widget_set_sensitive (hexboard, TRUE);
 }
