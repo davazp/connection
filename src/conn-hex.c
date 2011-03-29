@@ -29,7 +29,7 @@ struct hex_cell_s {
   unsigned int player : 2;
 };
 
-typedef int history_entry[2];
+typedef int history_entry[3];
 struct hex_s
 {
   size_t size;
@@ -47,8 +47,7 @@ typedef unsigned char hex_cell_t;
 /* Static functions */
 static void expand_a_connection (hex_t hex, uint i, uint j);
 static void expand_z_connection (hex_t hex, uint i, uint j);
-static void recompute_connection (hex_t hex);
-static hex_status_t hex_put_cell (hex_t hex, int player, uint i, uint j);
+static void recompute_setting (hex_t hex);
 
 /* Macro to easy board access */
 #define CELL(hex,i,j) ((hex)->board[(j)*((hex)->size) + (i)])
@@ -75,7 +74,6 @@ hex_reset (hex_t hex)
 {
   size_t size = hex->size;
   memset (hex->board, 0, sizeof(struct hex_cell_s) * size * size);
-  memset (hex->history, 0, sizeof(history_entry) * size);
   hex->player = 1;
   hex->end_of_game_p = 0;
   hex->history_size  = 0;
@@ -108,11 +106,12 @@ hex_history_backward (hex_t hex)
   count = hex->history_count;
   i = hex->history[count][0];
   j = hex->history[count][1];
+  hex->end_of_game_p = hex->history[count][2];
   CELL(hex,i,j).player = 0;
   CELL(hex,i,j).a_connected = 0;
   CELL(hex,i,j).z_connected = 0;
   hex->player = hex->player%2 + 1;
-  recompute_connection (hex);
+  recompute_setting (hex);
   return TRUE;
 }
 
@@ -125,9 +124,11 @@ hex_history_forward (hex_t hex)
     return FALSE;
   i = hex->history[count][0];
   j = hex->history[count][1];
-  hex_put_cell (hex, hex->player, i, j);
+  hex->end_of_game_p = hex->history[count][2];
+  CELL (hex,i,j).player = hex->player;
   hex->player = hex->player%2 + 1;
   hex->history_count++;
+  recompute_setting (hex);
   return TRUE;
 }
 
@@ -287,7 +288,7 @@ expand_z_connection (hex_t hex, uint i, uint j)
    when you remove some information from the board. For example, after
    a `undo'. */
 static void
-recompute_connection (hex_t hex)
+recompute_setting (hex_t hex)
 {
   size_t size = hex->size;
   int i,j;
@@ -339,7 +340,7 @@ recompute_connection (hex_t hex)
 
 
 static hex_status_t
-hex_put_cell (hex_t hex, int player, uint i, uint j)
+hex_move_1 (hex_t hex, int player, uint i, uint j)
 {
   if (! IN_BOARD_P (hex, i, j) )
     return HEX_INVALID_CELL;
@@ -371,7 +372,6 @@ hex_put_cell (hex_t hex, int player, uint i, uint j)
          (resp. z-connected). */
       for (t=0; t<6; t++)
         {
-
           int di = neighbors[t][0];
           int dj = neighbors[t][1];
           int i1 = i+di;
@@ -403,13 +403,13 @@ hex_move (hex_t hex, uint i, uint j)
 {
   hex_status_t status;
   unsigned int count;
-  status = hex_put_cell (hex, hex->player, i, j);
+  status = hex_move_1 (hex, hex->player, i, j);
   if (status == HEX_SUCCESS)
     {
       hex->player = hex->player%2 + 1;
       /* Truncate the 'future' history */
       if (hex->history_count < hex->history_size)
-        recompute_connection (hex);
+        recompute_setting (hex);
       count = hex->history_count;
       hex->history[count][0] = i;
       hex->history[count][1] = j;
