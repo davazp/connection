@@ -200,6 +200,8 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
 }
 
 
+/* Update the color of each cell of the Hexboard widget in screen,
+   according to the hex_t board stored.*/
 static void
 update_hexboard_colors (void)
 {
@@ -220,6 +222,8 @@ update_hexboard_colors (void)
     }
 }
 
+/* Update the sensitive of history buttons according to the history
+   status of the hex_t structure. */
 static void
 update_history_buttons (void)
 {
@@ -253,7 +257,6 @@ ui_signal_history_first (GtkToolButton * button, gpointer data)
     hex_history_backward (game);
   update_hexboard_colors();
   update_history_buttons();
-
   gtk_widget_set_sensitive (hexboard, size==0);
 }
 
@@ -275,7 +278,7 @@ ui_signal_history_forward (GtkToolButton * button, gpointer data)
   hex_history_forward (game);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, size==count);
+  gtk_widget_set_sensitive (hexboard, size==count+1);
 }
 
 void
@@ -287,7 +290,7 @@ ui_signal_history_last (GtkToolButton * button, gpointer data)
     hex_history_forward (game);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, size==count);
+  gtk_widget_set_sensitive (hexboard, TRUE);
 }
 
 void
@@ -303,7 +306,7 @@ ui_signal_redo (GtkMenuItem * item, gpointer data)
 {
   hex_history_forward (game);
   update_hexboard_colors();
-  gtk_widget_set_sensitive (hexboard, TRUE);
+  gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p (game));
 }
 
 
