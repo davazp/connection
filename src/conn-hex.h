@@ -21,6 +21,7 @@
 #define CONN_HEX_H
 
 #include <stdlib.h>
+#include "conn-utils.h"
 
 typedef struct hex_s * hex_t;
 
@@ -38,10 +39,9 @@ void hex_reset (hex_t hex);
 void hex_free (hex_t hex);
 
 /* History */
-boolean hex_history_backward (hex_t hex);
-boolean hex_history_forward (hex_t hex);
+unsigned int hex_history_jump (hex_t hex, unsigned int n);
+unsigned int hex_history_current (hex_t hex);
 unsigned int hex_history_size (hex_t hex);
-unsigned int hex_history_count (hex_t hex);
 void hex_truncate_history (hex_t hex);
 
 /* Gaming */

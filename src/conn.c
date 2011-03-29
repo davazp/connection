@@ -22,8 +22,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <gtk/gtk.h>
 #include <math.h>
+#include <gtk/gtk.h>
+#include <assert.h>
 #include "conn-utils.h"
 #include "conn-hex.h"
 #include "conn-hex-widget.h"
@@ -34,8 +35,15 @@
 
 /* Global variables */
 static GtkBuilder * builder;
-GtkWidget * hexboard;
-hex_t game;
+
+/* A couple of points in the history of the game. HISTORY_POINT stands
+   for the point which the user is viewing in the widget. Otherwise,
+   UNDO_POINT stands for the point where movements are inserted. */
+static unsigned long history_marker;
+static unsigned long undo_history_marker;
+
+static GtkWidget * hexboard;
+static hex_t game;
 
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
@@ -94,11 +102,8 @@ ui_signal_new (GtkMenuItem * item, gpointer data)
   size_t size;
   size = hexboard_get_size (HEXBOARD (hexboard));
   hex_reset (game);
-  for(j=0; j<size; j++)
-    {
-      for(i=0; i<size; i++)
-        hexboard_set_color (HEXBOARD(hexboard), i, j, 1, 1, 1);
-    }
+  history_marker = undo_history_marker = 0;
+  update_hexboard_colors();
   update_history_buttons();
 }
 
@@ -187,6 +192,7 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
   hex_status_t status;
   player = hex_get_player (game);
   status = hex_move (game, i, j);
+  undo_history_marker = history_marker = hex_history_current (game);
   update_history_buttons();
   if (status == HEX_SUCCESS)
     {
@@ -233,28 +239,37 @@ update_history_buttons (void)
   GtkWidget * last     = GET_OBJECT ("button-history-last");
   GtkWidget * undo     = GET_OBJECT ("menu-undo");
   GtkWidget * redo     = GET_OBJECT ("menu-redo");
-  size_t size;
-  size_t count;
-  size = hex_history_size (game);
-  count = hex_history_count (game);
+  int size = hex_history_size (game);
   /* Set sensitive attributes to history buttons. */
-  gtk_widget_set_sensitive (first,    count==0?    FALSE: TRUE);
-  gtk_widget_set_sensitive (backward, count==0?    FALSE: TRUE);
-  gtk_widget_set_sensitive (last,     count==size? FALSE: TRUE);
-  gtk_widget_set_sensitive (forward,  count==size? FALSE: TRUE);
+  gtk_widget_set_sensitive (first,    history_marker != 0);
+  gtk_widget_set_sensitive (backward, history_marker != 0);
+  gtk_widget_set_sensitive (last,     history_marker != undo_history_marker);
+  gtk_widget_set_sensitive (forward,  history_marker != undo_history_marker);
   /* undo/redo */
-  gtk_widget_set_sensitive (undo, count==size? TRUE: FALSE);
-  gtk_widget_set_sensitive (redo, count==size? TRUE: FALSE);
+  if (history_marker == undo_history_marker && undo_history_marker > 0)
+    gtk_widget_set_sensitive (undo, TRUE);
+  else
+    gtk_widget_set_sensitive (undo, FALSE);
+
+  if (history_marker == undo_history_marker && undo_history_marker < size)
+    gtk_widget_set_sensitive (redo, TRUE);
+  else
+    gtk_widget_set_sensitive (redo, FALSE);
 }
 
+
+/* The following signal handlers assume the history of the game is in
+   a good point to work that operation. The function
+   `update_history_buttons' is reliable to enable/disable buttons in
+   order to these signals can be emited. */
 
 void
 ui_signal_history_first (GtkToolButton * button, gpointer data)
 {
-  int size = hex_history_size(game);
-  int count = hex_history_count(game);
-  while (count--)
-    hex_history_backward (game);
+  size_t size = hex_history_size (game);
+  assert (history_marker > 0);
+  hex_history_jump (game, 0);
+  history_marker = 0;
   update_hexboard_colors();
   update_history_buttons();
   gtk_widget_set_sensitive (hexboard, size==0);
@@ -263,50 +278,60 @@ ui_signal_history_first (GtkToolButton * button, gpointer data)
 void
 ui_signal_history_backward (GtkToolButton * button, gpointer data)
 {
-  int size = hex_history_size (game);
-  hex_history_backward (game);
+  assert (history_marker > 0);
+  hex_history_jump (game, --history_marker);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, size==0);
+  gtk_widget_set_sensitive (hexboard, FALSE);
 }
 
 void
 ui_signal_history_forward (GtkToolButton * button, gpointer data)
 {
-  int size = hex_history_size (game);
-  int count = hex_history_count (game);
-  hex_history_forward (game);
+  assert (history_marker < undo_history_marker);
+  hex_history_jump (game, ++history_marker);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, size==count+1);
+  gtk_widget_set_sensitive (hexboard, history_marker==undo_history_marker);
 }
 
 void
 ui_signal_history_last (GtkToolButton * button, gpointer data)
 {
-  int size = hex_history_size(game);
-  int count = hex_history_count(game);
-  for (; count<size; count++)
-    hex_history_forward (game);
+  assert (history_marker < undo_history_marker);
+  hex_history_jump (game, undo_history_marker);
+  history_marker = undo_history_marker;
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, TRUE);
+  gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p(game));
 }
+
 
 void
 ui_signal_undo (GtkMenuItem * item, gpointer data)
 {
-  hex_history_backward (game);
+  assert (history_marker == undo_history_marker);
+  assert (undo_history_marker > 0);
+  undo_history_marker--;
+  history_marker = undo_history_marker;
+  hex_history_jump (game, undo_history_marker);
   update_hexboard_colors();
+  update_history_buttons();
   gtk_widget_set_sensitive (hexboard, TRUE);
 }
 
 void
 ui_signal_redo (GtkMenuItem * item, gpointer data)
 {
-  hex_history_forward (game);
+  size_t size = hex_history_size (game);
+  assert (history_marker == undo_history_marker);
+  assert (undo_history_marker < size);
+  undo_history_marker++;
+  history_marker = undo_history_marker;
+  hex_history_jump (game, history_marker);
   update_hexboard_colors();
-  gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p (game));
+  update_history_buttons();
+  gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p(game));
 }
 
 
@@ -329,10 +354,8 @@ main (int argc, char * argv[])
   game = hex_new (13);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);
   hexboard = hexboard_new();
-  g_signal_connect (GTK_WIDGET(hexboard),
-                    "cell_clicked",
-                    G_CALLBACK(ui_signal_cell_clicked),
-                    game);
+  g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked",
+                    G_CALLBACK(ui_signal_cell_clicked), game);
   gtk_container_add (GTK_CONTAINER(box), hexboard);
   gtk_widget_show_all (window);
 

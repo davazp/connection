@@ -38,7 +38,7 @@ struct hex_s
   struct hex_cell_s * board;
   /* History */
   unsigned int history_size;
-  unsigned int history_count;
+  unsigned int history_current;
   history_entry *history;
 };
 
@@ -54,6 +54,9 @@ static void recompute_setting (hex_t hex);
 
 /* Check if there is a (i,j)-cell in the board HEX. */
 #define IN_BOARD_P(hex,i,j) (i>=0 && i<(hex)->size && j>=0 && j<(hex)->size)
+
+/* Switch player */
+#define SWITCH_PLAYER(hex) ((hex)->player = (hex)->player%2 + 1)
 
 
 /* Construction and destruction */
@@ -76,8 +79,8 @@ hex_reset (hex_t hex)
   memset (hex->board, 0, sizeof(struct hex_cell_s) * size * size);
   hex->player = 1;
   hex->end_of_game_p = 0;
-  hex->history_size  = 0;
-  hex->history_count = 0;
+  hex->history_size = 0;
+  hex->history_current = 0;
 }
 
 size_t
@@ -95,42 +98,64 @@ hex_free (hex_t hex)
 
 /* History */
 
-boolean
-hex_history_backward (hex_t hex)
+static boolean
+history_backward (hex_t hex)
 {
-  unsigned int count;
+  unsigned int current;
   int i, j;
-  if (hex->history_count == 0)
+  if (hex->history_current == 0)
     return FALSE;
-  hex->history_count--;
-  count = hex->history_count;
-  i = hex->history[count][0];
-  j = hex->history[count][1];
-  hex->end_of_game_p = hex->history[count][2];
+  hex->history_current--;
+  current = hex->history_current;
+  i = hex->history[current][0];
+  j = hex->history[current][1];
+  hex->end_of_game_p = hex->history[current][2];
   CELL(hex,i,j).player = 0;
-  CELL(hex,i,j).a_connected = 0;
-  CELL(hex,i,j).z_connected = 0;
-  hex->player = hex->player%2 + 1;
-  recompute_setting (hex);
+  SWITCH_PLAYER (hex);
   return TRUE;
 }
 
-boolean
-hex_history_forward (hex_t hex)
+static boolean
+history_forward (hex_t hex)
 {
-  unsigned int count = hex->history_count;
+  unsigned int current = hex->history_current;
   int i, j;
-  if (hex->history_count == hex->history_size)
+  if (hex->history_current == hex->history_size)
     return FALSE;
-  i = hex->history[count][0];
-  j = hex->history[count][1];
-  hex->end_of_game_p = hex->history[count][2];
+  i = hex->history[current][0];
+  j = hex->history[current][1];
+  hex->end_of_game_p = hex->history[current][2];
   CELL (hex,i,j).player = hex->player;
-  hex->player = hex->player%2 + 1;
-  hex->history_count++;
-  recompute_setting (hex);
+  SWITCH_PLAYER (hex);
+  hex->history_current++;
   return TRUE;
 }
+
+unsigned int
+hex_history_jump (hex_t hex, unsigned int n)
+{
+  unsigned int current = hex->history_current;
+  if (current < n)
+    {
+      for (; current<n; current++)
+        history_forward (hex);
+    }
+  else
+    {
+      for(; current>n; current--)
+        history_backward (hex);
+    }
+  recompute_setting (hex);
+  return current;
+}
+
+
+unsigned int
+hex_history_current (hex_t hex)
+{
+  return hex->history_current;
+}
+
 
 unsigned int
 hex_history_size (hex_t hex)
@@ -138,16 +163,10 @@ hex_history_size (hex_t hex)
   return hex->history_size;
 }
 
-unsigned int
-hex_history_count (hex_t hex)
-{
-  return hex->history_count;
-}
-
 void
 hex_truncate_history (hex_t hex)
 {
-  hex->history_size = hex->history_count;
+  hex->history_size = hex->history_current;
 }
 
 
@@ -402,19 +421,19 @@ hex_status_t
 hex_move (hex_t hex, uint i, uint j)
 {
   hex_status_t status;
-  unsigned int count;
+  unsigned int current;
   status = hex_move_1 (hex, hex->player, i, j);
   if (status == HEX_SUCCESS)
     {
-      hex->player = hex->player%2 + 1;
+      SWITCH_PLAYER (hex);
       /* Truncate the 'future' history */
-      if (hex->history_count < hex->history_size)
+      if (hex->history_current < hex->history_size)
         recompute_setting (hex);
-      count = hex->history_count;
-      hex->history[count][0] = i;
-      hex->history[count][1] = j;
-      hex->history[count][2] = hex->end_of_game_p;
-      hex->history_count++;
+      current = hex->history_current;
+      hex->history[current][0] = i;
+      hex->history[current][1] = j;
+      hex->history[current][2] = hex->end_of_game_p;
+      hex->history_current++;
       hex_truncate_history (hex);
     }
   return status;
