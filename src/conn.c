@@ -30,6 +30,8 @@
 #include "conn-hex-widget.h"
 
 #define UI_BUILDER_FILENAME "./connection.ui"
+#define CELL_NORMAL_BORDER_WIDTH 1
+#define CELL_SELECT_BORDER_WIDTH 3
 
 #define GET_OBJECT(obj) (GTK_WIDGET(gtk_builder_get_object (builder, (obj))))
 
@@ -189,17 +191,24 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
 {
   double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
   int player;
+  int old_i, old_j;
   hex_status_t status;
+  int first_move_p;
+  first_move_p = !hex_history_last_move (game, &old_i, &old_j);
   player = hex_get_player (game);
   status = hex_move (game, i, j);
   undo_history_marker = history_marker = hex_history_current (game);
   update_history_buttons();
   if (status == HEX_SUCCESS)
     {
-      hexboard_set_color (HEXBOARD(widget), i, j,
-                          colors[player][0],
-                          colors[player][1],
-                          colors[player][2]);
+      if (!first_move_p)
+        hexboard_cell_set_border (HEXBOARD(widget), old_i, old_j,
+                                  CELL_NORMAL_BORDER_WIDTH);
+      hexboard_cell_set_color (HEXBOARD(widget), i, j,
+                               colors[player][0],
+                               colors[player][1],
+                               colors[player][2]);
+      hexboard_cell_set_border (HEXBOARD(widget), i, j, CELL_SELECT_BORDER_WIDTH);
     }
   else
     gdk_beep();
@@ -214,18 +223,24 @@ update_hexboard_colors (void)
   Hexboard * hex = HEXBOARD(hexboard);
   double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
   size_t size = hex_size (game);
+  boolean first_move_p;
   int i, j;
   for (j=0; j<size; j++)
     {
       for (i=0; i<size; i++)
         {
           int player = hex_cell_player (game, i, j);
-          hexboard_set_color (hex, i, j,
-                              colors[player][0],
-                              colors[player][1],
-                              colors[player][2]);
+          hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
+          hexboard_cell_set_color (hex, i, j,
+                                   colors[player][0],
+                                   colors[player][1],
+                                   colors[player][2]);
         }
     }
+
+  first_move_p = !hex_history_last_move (game, &i, &j);
+  if (!first_move_p)
+    hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_SELECT_BORDER_WIDTH);
 }
 
 /* Update the sensitive of history buttons according to the history

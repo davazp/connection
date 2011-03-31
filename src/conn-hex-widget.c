@@ -65,7 +65,7 @@ static void pixel_to_cell (Hexboard * hexboard, int x, int y,
                            int *output_i, int *output_j);
 
 static void draw_hexagon (cairo_t *cr, double cx, double cy, double radious,
-                          double r, double g, double b);
+                          double r, double g, double b, double border);
 
 static void draw_board (Hexboard * hexboard, cairo_t * cr,
                         gint width, gint height);
@@ -89,7 +89,8 @@ typedef struct _HexboardPrivate {
     double r;
     double g;
     double b;
-  } cell_colors[BOARD_MAX_SIZE][BOARD_MAX_SIZE];
+    double border;
+  } look[BOARD_MAX_SIZE][BOARD_MAX_SIZE];
 } HexboardPrivate;
 
 #define HEXBOARD_GET_PRIVATE(obj)                                       \
@@ -178,9 +179,10 @@ hexboard_init(Hexboard * hexboard)
     {
       for (j=0; j<size; j++)
         {
-          state->cell_colors[i][j].r = 1;
-          state->cell_colors[i][j].g = 1;
-          state->cell_colors[i][j].b = 1;
+          state->look[i][j].r = 1;
+          state->look[i][j].g = 1;
+          state->look[i][j].b = 1;
+          state->look[i][j].border = 1;
         }
     }
   gtk_widget_add_events (GTK_WIDGET (hexboard), GDK_BUTTON_PRESS_MASK);
@@ -241,11 +243,30 @@ hexboard_configure (GtkWidget * widget, GdkEventConfigure *event)
 }
 
 
+/* static void
+ * draw_hexagon (cairo_t *cr, double cx, double cy, double radious,
+ *               double r, double g, double b, double border)
+ * {
+ *   int i;
+ *   cairo_set_source_rgb (cr, 0, 0, 0);
+ *   cairo_move_to (cr, cx + radious, cy);
+ *   cairo_set_line_width (cr, border);
+ *   for (i=1; i<6; i++)
+ *     {
+ *       double angle = 2*i*M_PI/6;
+ *       cairo_line_to (cr, cx + radious*cos(angle), cy + radious*sin(angle));
+ *     }
+ *   cairo_close_path (cr);
+ *   cairo_stroke_preserve (cr);
+ *   cairo_set_source_rgb (cr, r, g, b);
+ *   cairo_fill (cr);
+ * } */
+
 static void
-draw_hexagon (cairo_t *cr, double cx, double cy, double radious,
-              double r, double g, double b)
+stroke_hexagon (cairo_t *cr, double cx, double cy, double radious, double border)
 {
   int i;
+  cairo_set_line_width (cr, border);
   cairo_set_source_rgb (cr, 0, 0, 0);
   cairo_move_to (cr, cx + radious, cy);
   for (i=1; i<6; i++)
@@ -254,10 +275,25 @@ draw_hexagon (cairo_t *cr, double cx, double cy, double radious,
       cairo_line_to (cr, cx + radious*cos(angle), cy + radious*sin(angle));
     }
   cairo_close_path (cr);
-  cairo_stroke_preserve (cr);
+  cairo_stroke (cr);
+}
+
+static void
+fill_hexagon (cairo_t *cr, double cx, double cy, double radious,
+              double r, double g, double b)
+{
+  int i;
   cairo_set_source_rgb (cr, r, g, b);
+  cairo_move_to (cr, cx + radious, cy);
+  for (i=1; i<6; i++)
+    {
+      double angle = 2*i*M_PI/6;
+      cairo_line_to (cr, cx + radious*cos(angle), cy + radious*sin(angle));
+    }
+  cairo_close_path (cr);
   cairo_fill (cr);
 }
+
 
 static void
 draw_border_rd (Hexboard * hexboard, cairo_t * cr)
@@ -395,13 +431,21 @@ draw_board (Hexboard * hexboard, cairo_t * cr, gint width, gint height)
     {
       for (i=0; i<n; i++)
         {
-          int x;
-          int y;
+          int x,y;
           cell_to_pixel (hexboard, i, j, &x, &y);
-          draw_hexagon (cr, x, y, st->cell_width/2,
-                        st->cell_colors[i][j].r,
-                        st->cell_colors[i][j].g,
-                        st->cell_colors[i][j].b);
+          fill_hexagon (cr, x, y, st->cell_width/2,
+                        st->look[i][j].r,
+                        st->look[i][j].g,
+                        st->look[i][j].b);
+        }
+    }
+  for (j=0; j<n; j++)
+    {
+      for (i=0; i<n; i++)
+        {
+          int x,y;
+          cell_to_pixel (hexboard, i, j, &x, &y);
+          stroke_hexagon (cr, x, y, st->cell_width/2, st->look[i][j].border);
         }
     }
 }
@@ -457,14 +501,47 @@ hexboard_get_size (Hexboard * hex)
 }
 
 gboolean
-hexboard_set_color (Hexboard * board, gint i, gint j, double r, double g, double b)
+hexboard_cell_get_color (Hexboard * board, gint i, gint j, double *r, double *g, double *b)
 {
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
   if (i < 0 || i >= st->size || j < 0 || j >= st->size)
     return FALSE;
-  st->cell_colors[i][j].r = r;
-  st->cell_colors[i][j].g = g;
-  st->cell_colors[i][j].b = b;
+  *r = st->look[i][j].r;
+  *g = st->look[i][j].g;
+  *b = st->look[i][j].b;
+  return TRUE;
+}
+
+gboolean
+hexboard_cell_set_color (Hexboard * board, gint i, gint j, double r, double g, double b)
+{
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
+  if (i < 0 || i >= st->size || j < 0 || j >= st->size)
+    return FALSE;
+  st->look[i][j].r = r;
+  st->look[i][j].g = g;
+  st->look[i][j].b = b;
+  gtk_widget_queue_draw (GTK_WIDGET (board));
+  return TRUE;
+}
+
+gboolean
+hexboard_cell_get_border (Hexboard * board, gint i, gint j, double * border)
+{
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
+  if (i < 0 || i >= st->size || j < 0 || j >= st->size)
+    return FALSE;
+  *border = st->look[i][j].border;
+  return TRUE;
+}
+
+gboolean
+hexboard_cell_set_border (Hexboard * board, gint i, gint j, double border)
+{
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
+  if (i < 0 || i >= st->size || j < 0 || j >= st->size)
+    return FALSE;
+  st->look[i][j].border = border;
   gtk_widget_queue_draw (GTK_WIDGET (board));
   return TRUE;
 }

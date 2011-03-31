@@ -169,6 +169,20 @@ hex_truncate_history (hex_t hex)
   hex->history_size = hex->history_current;
 }
 
+boolean
+hex_history_last_move (hex_t hex, uint *i, uint *j)
+{
+  if (hex->history_current == 0)
+    return FALSE;
+  else
+    {
+      unsigned current = hex->history_current;
+      *i = hex->history[current-1][0];
+      *j = hex->history[current-1][1];
+      return TRUE;
+    }
+}
+
 
 
 

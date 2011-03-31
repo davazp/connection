@@ -58,8 +58,15 @@ GtkWidget * hexboard_new (void);
 
 size_t hexboard_get_size (Hexboard * hex);
 
-gboolean hexboard_set_color (Hexboard * board, gint i, gint j,
-                             double r, double g, double b);
+/* Default color value is white. */
+gboolean hexboard_cell_set_color (Hexboard * board, gint i, gint j,
+                                  double r, double g, double b);
+gboolean hexboard_cell_get_color (Hexboard * board, gint i, gint j,
+                                  double *r, double *g, double *b);
+
+/* Default border value is 1.0 */
+gboolean hexboard_cell_set_border (Hexboard * board, gint i, gint j, double border);
+gboolean hexboard_cell_get_border (Hexboard * board, gint i, gint j, double * border);
 
 gboolean hexboard_save_as_image (Hexboard * hex, const char * filename,
                                  const char * type, guint width, guint height);

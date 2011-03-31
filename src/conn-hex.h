@@ -43,6 +43,7 @@ unsigned int hex_history_jump (hex_t hex, unsigned int n);
 unsigned int hex_history_current (hex_t hex);
 unsigned int hex_history_size (hex_t hex);
 void hex_truncate_history (hex_t hex);
+boolean hex_history_last_move (hex_t hex, uint *i, uint *j);
 
 /* Gaming */
 hex_status_t hex_move (hex_t hex, uint i, uint j);
