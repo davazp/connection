@@ -109,7 +109,7 @@ history_backward (hex_t hex)
   current = hex->history_current;
   i = hex->history[current][0];
   j = hex->history[current][1];
-  hex->end_of_game_p = hex->history[current][2];
+  hex->end_of_game_p = 0;
   CELL(hex,i,j).player = 0;
   SWITCH_PLAYER (hex);
   return TRUE;

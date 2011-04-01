@@ -35,6 +35,8 @@
 
 #define GET_OBJECT(obj) (GTK_WIDGET(gtk_builder_get_object (builder, (obj))))
 
+#define CLIP(x,a,b) (MIN (MAX((x),a), b))
+
 /* Global variables */
 static GtkBuilder * builder;
 
@@ -49,6 +51,7 @@ static hex_t game;
 
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
+static void check_end_of_game (void);
 
 void
 ui_error (const gchar *fmt, ...)
@@ -209,6 +212,7 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
                                colors[player][1],
                                colors[player][2]);
       hexboard_cell_set_border (HEXBOARD(widget), i, j, CELL_SELECT_BORDER_WIDTH);
+      check_end_of_game();
     }
   else
     gdk_beep();
@@ -272,6 +276,39 @@ update_history_buttons (void)
     gtk_widget_set_sensitive (redo, FALSE);
 }
 
+/* Check if the game is over and draw a visual effect on the board. */
+static void
+check_end_of_game (void)
+{
+  double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
+  Hexboard * hex = HEXBOARD(hexboard);
+  size_t size = hex_size (game);
+  boolean first_move_p;
+  int i, j;
+
+  if (!hex_end_of_game_p (game))
+    return;
+
+  for (j=0; j<size; j++)
+    {
+      for (i=0; i<size; i++)
+        {
+          int player = hex_cell_player (game, i, j);
+          int a_connected_p = hex_cell_a_connected_p (game, i, j) > 0;
+          int z_connected_p = hex_cell_z_connected_p (game, i, j) > 0;
+          double alpha;
+          if (a_connected_p && z_connected_p)
+            alpha = 0;
+          else
+            alpha = -0.5;
+          hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
+          hexboard_cell_set_color (hex, i, j,
+                                   CLIP (colors[player][0] + alpha, 0, 1),
+                                   CLIP (colors[player][1] + alpha, 0, 1),
+                                   CLIP (colors[player][2] + alpha, 0, 1));
+        }
+    }
+}
 
 /* The following signal handlers assume the history of the game is in
    a good point to work that operation. The function
@@ -307,6 +344,7 @@ ui_signal_history_forward (GtkToolButton * button, gpointer data)
   hex_history_jump (game, ++history_marker);
   update_hexboard_colors();
   update_history_buttons();
+  check_end_of_game();
   gtk_widget_set_sensitive (hexboard, history_marker==undo_history_marker);
 }
 
@@ -318,6 +356,7 @@ ui_signal_history_last (GtkToolButton * button, gpointer data)
   history_marker = undo_history_marker;
   update_hexboard_colors();
   update_history_buttons();
+  check_end_of_game();
   gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p(game));
 }
 
@@ -346,6 +385,7 @@ ui_signal_redo (GtkMenuItem * item, gpointer data)
   hex_history_jump (game, history_marker);
   update_hexboard_colors();
   update_history_buttons();
+  check_end_of_game();
   gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p(game));
 }
 
