@@ -52,21 +52,30 @@ struct _HexboardClass {
   void (*cell_clicked) (Hexboard *hexboard, gint i, gint j, gpointer user_data);
 };
 
+typedef enum _HexboardBorder {
+  HEXBOARD_BORDER_NE,
+  HEXBOARD_BORDER_NW,
+  HEXBOARD_BORDER_SW,
+  HEXBOARD_BORDER_SE,
+} HexboardBorder;
+
 GtkType hexboard_get_type(void);
 
-GtkWidget * hexboard_new (void);
+GtkWidget * hexboard_new (guint size);
 
-size_t hexboard_get_size (Hexboard * hex);
+guint hexboard_get_size (Hexboard * hex);
+gboolean hexboard_set_size (Hexboard * hex, guint size);
 
 /* Default color value is white. */
-gboolean hexboard_cell_set_color (Hexboard * board, gint i, gint j,
-                                  double r, double g, double b);
-gboolean hexboard_cell_get_color (Hexboard * board, gint i, gint j,
-                                  double *r, double *g, double *b);
+gboolean hexboard_cell_set_color (Hexboard * board, gint i, gint j, double r, double g, double b);
+gboolean hexboard_cell_get_color (Hexboard * board, gint i, gint j, double *r, double *g, double *b);
 
 /* Default border value is 1.0 */
 gboolean hexboard_cell_set_border (Hexboard * board, gint i, gint j, double border);
 gboolean hexboard_cell_get_border (Hexboard * board, gint i, gint j, double * border);
+
+void hexboard_border_set_color (Hexboard * board, HexboardBorder border, double r, double g, double b);
+void hexboard_border_get_color (Hexboard * board, HexboardBorder border, double *r, double *g, double *b);
 
 gboolean hexboard_save_as_image (Hexboard * hex, const char * filename,
                                  const char * type, guint width, guint height);

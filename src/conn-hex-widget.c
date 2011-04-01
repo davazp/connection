@@ -71,7 +71,7 @@ static void draw_board (Hexboard * hexboard, cairo_t * cr,
 G_DEFINE_TYPE (Hexboard, hexboard, GTK_TYPE_DRAWING_AREA);
 
 typedef struct _HexboardPrivate {
-  int size;
+  uint size;
   int border;
   /* Geometry of the board in the viewport widget. They are computed
      by the hexboard_configure function when the main window is
@@ -88,6 +88,7 @@ typedef struct _HexboardPrivate {
     double b;
     double border;
   } look[BOARD_MAX_SIZE][BOARD_MAX_SIZE];
+  double border_color[4][3];
 } HexboardPrivate;
 
 #define HEXBOARD_GET_PRIVATE(obj)                                       \
@@ -168,10 +169,22 @@ static void
 hexboard_init(Hexboard * hexboard)
 {
   HexboardPrivate * state = HEXBOARD_GET_PRIVATE (hexboard);
-  int size = 13;
   int i,j;
-  state->size = size;
+  guint size = BOARD_MAX_SIZE;
   state->border = 30;
+  /* Default border colors are green and red. */
+  state->border_color[HEXBOARD_BORDER_SW][0] =
+    state->border_color[HEXBOARD_BORDER_NE][0] = 1;
+  state->border_color[HEXBOARD_BORDER_SW][1] =
+    state->border_color[HEXBOARD_BORDER_NE][1] = 0;
+  state->border_color[HEXBOARD_BORDER_SW][2] =
+    state->border_color[HEXBOARD_BORDER_NE][2] = 0;
+  state->border_color[HEXBOARD_BORDER_SE][0] =
+    state->border_color[HEXBOARD_BORDER_NW][0] = 0;
+  state->border_color[HEXBOARD_BORDER_SE][1] =
+    state->border_color[HEXBOARD_BORDER_NW][1] = 1;
+  state->border_color[HEXBOARD_BORDER_SE][2] =
+    state->border_color[HEXBOARD_BORDER_NW][2] = 0;
   for (i=0; i<size; i++)
     {
       for (j=0; j<size; j++)
@@ -241,7 +254,7 @@ hexboard_configure (GtkWidget * widget, GdkEventConfigure *event)
 
 
 static void
-draw_border_rd (Hexboard * hexboard, cairo_t * cr)
+draw_border_se (Hexboard * hexboard, cairo_t * cr, double r, double g, double b)
 {
   const int border = HEXBOARD_BORDER_WIDTH;
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
@@ -266,12 +279,12 @@ draw_border_rd (Hexboard * hexboard, cairo_t * cr)
   cairo_line_to (cr, x + st->cell_width/2 + border, y);
   cairo_line_to (cr, x + st->cell_width/2, y);
   cairo_close_path (cr);
-  cairo_set_source_rgb (cr, 0, 1, 0);
+  cairo_set_source_rgb (cr, r, g, b);
   cairo_fill (cr);
 }
 
 static void
-draw_border_ld (Hexboard * hexboard, cairo_t * cr)
+draw_border_sw (Hexboard * hexboard, cairo_t * cr, double r, double g, double b)
 {
   const int border = HEXBOARD_BORDER_WIDTH;
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
@@ -296,12 +309,12 @@ draw_border_ld (Hexboard * hexboard, cairo_t * cr)
   cairo_line_to (cr, x - st->cell_width/2 - border, y);
   cairo_line_to (cr, x - st->cell_width/2, y);
   cairo_close_path (cr);
-  cairo_set_source_rgb (cr, 1, 0, 0);
+  cairo_set_source_rgb (cr, r, g, b);
   cairo_fill (cr);
 }
 
 static void
-draw_border_lu (Hexboard * hexboard, cairo_t * cr)
+draw_border_nw (Hexboard * hexboard, cairo_t * cr, double r, double g, double b)
 {
   const int border = HEXBOARD_BORDER_WIDTH;
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
@@ -326,12 +339,12 @@ draw_border_lu (Hexboard * hexboard, cairo_t * cr)
   cairo_line_to (cr, x - st->cell_width/2 - border, y);
   cairo_line_to (cr, x - st->cell_width/2, y);
   cairo_close_path (cr);
-  cairo_set_source_rgb (cr, 0, 1, 0);
+  cairo_set_source_rgb (cr, r, g, b);
   cairo_fill (cr);
 }
 
 static void
-draw_border_ru (Hexboard * hexboard, cairo_t * cr)
+draw_border_ne (Hexboard * hexboard, cairo_t * cr, double r, double g, double b)
 {
   const int border = HEXBOARD_BORDER_WIDTH;
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
@@ -356,7 +369,7 @@ draw_border_ru (Hexboard * hexboard, cairo_t * cr)
   cairo_line_to (cr, x + st->cell_width/2 + border, y);
   cairo_line_to (cr, x + st->cell_width/2, y);
   cairo_close_path (cr);
-  cairo_set_source_rgb (cr, 1, 0, 0);
+  cairo_set_source_rgb (cr, r, g, b);
   cairo_fill (cr);
 }
 
@@ -368,10 +381,22 @@ draw_board (Hexboard * hexboard, cairo_t * cr, gint width, gint height)
   double radious;
   int n = st->size;
   int i, j;
-  draw_border_rd (hexboard, cr);
-  draw_border_ld (hexboard, cr);
-  draw_border_lu (hexboard, cr);
-  draw_border_ru (hexboard, cr);
+  draw_border_se (hexboard, cr,
+                  st->border_color[HEXBOARD_BORDER_SE][0],
+                  st->border_color[HEXBOARD_BORDER_SE][1],
+                  st->border_color[HEXBOARD_BORDER_SE][2]);
+  draw_border_sw (hexboard, cr,
+                  st->border_color[HEXBOARD_BORDER_SW][0],
+                  st->border_color[HEXBOARD_BORDER_SW][1],
+                  st->border_color[HEXBOARD_BORDER_SW][2]);
+  draw_border_nw (hexboard, cr,
+                  st->border_color[HEXBOARD_BORDER_NW][0],
+                  st->border_color[HEXBOARD_BORDER_NW][1],
+                  st->border_color[HEXBOARD_BORDER_NW][2]);
+  draw_border_ne (hexboard, cr,
+                  st->border_color[HEXBOARD_BORDER_NE][0],
+                  st->border_color[HEXBOARD_BORDER_NE][1],
+                  st->border_color[HEXBOARD_BORDER_NE][2]);
   radious = st->cell_width/2;
   /* Cells */
   for (j=0; j<n; j++)
@@ -449,18 +474,42 @@ hexboard_expose(GtkWidget * widget, GdkEventExpose *event)
 }
 
 GtkWidget *
-hexboard_new (void)
+hexboard_new (guint size)
 {
   GtkWidget * widget;
-  widget = g_object_new (TYPE_HEXBOARD, NULL);
+  if (size > 0 && size <= BOARD_MAX_SIZE)
+    {
+      widget = g_object_new (TYPE_HEXBOARD, NULL);
+      hexboard_set_size (HEXBOARD(widget), size);
+    }
+  else
+    widget = NULL;
+
   return widget;
 }
 
-size_t
+guint
 hexboard_get_size (Hexboard * hex)
 {
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hex);
   return st->size;
+}
+
+gboolean
+hexboard_set_size (Hexboard * hex, guint size)
+{
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hex);
+  gboolean success;
+  if (size > 0 && size <= BOARD_MAX_SIZE)
+    {
+      st->size = size;
+      success = TRUE;
+      gtk_widget_queue_draw (GTK_WIDGET(hex));
+    }
+  else
+    success = FALSE;
+
+  return success;
 }
 
 gboolean
@@ -507,6 +556,25 @@ hexboard_cell_set_border (Hexboard * board, gint i, gint j, double border)
   st->look[i][j].border = border;
   gtk_widget_queue_draw (GTK_WIDGET (board));
   return TRUE;
+}
+
+void
+hexboard_border_get_color (Hexboard * board, HexboardBorder border, double *r, double *g, double *b)
+{
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
+  *r = st->border_color[border][0];
+  *g = st->border_color[border][1];
+  *b = st->border_color[border][2];
+}
+
+void
+hexboard_border_set_color (Hexboard * board, HexboardBorder border, double r, double g, double b)
+{
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
+  st->border_color[border][0] = r;
+  st->border_color[border][1] = g;
+  st->border_color[border][2] = b;
+  gtk_widget_queue_draw (GTK_WIDGET(board));
 }
 
 

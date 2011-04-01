@@ -29,6 +29,8 @@
 #include "conn-hex.h"
 #include "conn-hex-widget.h"
 
+#define DEFAULT_BOARD_SIZE 13
+
 #define UI_BUILDER_FILENAME "./connection.ui"
 #define CELL_NORMAL_BORDER_WIDTH 1
 #define CELL_SELECT_BORDER_WIDTH 3
@@ -406,9 +408,9 @@ main (int argc, char * argv[])
   box = GET_OBJECT("box");
   about = GET_OBJECT ("about");
 
-  game = hex_new (13);
+  game = hex_new (DEFAULT_BOARD_SIZE);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);
-  hexboard = hexboard_new();
+  hexboard = hexboard_new(DEFAULT_BOARD_SIZE);
   g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked",
                     G_CALLBACK(ui_signal_cell_clicked), game);
   gtk_container_add (GTK_CONTAINER(box), hexboard);
