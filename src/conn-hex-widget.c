@@ -64,9 +64,6 @@ static void cell_to_pixel (Hexboard * hexboard, int i, int j,
 static void pixel_to_cell (Hexboard * hexboard, int x, int y,
                            int *output_i, int *output_j);
 
-static void draw_hexagon (cairo_t *cr, double cx, double cy, double radious,
-                          double r, double g, double b, double border);
-
 static void draw_board (Hexboard * hexboard, cairo_t * cr,
                         gint width, gint height);
 
@@ -101,7 +98,7 @@ typedef struct _HexboardPrivate {
    in the viewport widget. The output coordinates are written in
    OUTPUT_X and OUTPUT_Y, and they are the coordinates of the center
    of the hexagon in he screen. */
-static void
+static inline void
 cell_to_pixel (Hexboard * hexboard, int i, int j, int *output_x, int *output_y)
 {
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
@@ -154,7 +151,7 @@ nearest_cell (float x, float y, int *i, int *j)
 /* Transform the point (X,Y) in pixel-based coordinates of the
    viewport widget to the coordinate of a cell in the board. The
    output cell coordinates are written to OUTPUT_I and OUTPUT_J. */
-static void
+static inline void
 pixel_to_cell (Hexboard * hexboard, int x, int y, int *output_i, int *output_j)
 {
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
@@ -240,58 +237,6 @@ hexboard_configure (GtkWidget * widget, GdkEventConfigure *event)
   st->cell_width = 2 * radious;
   st->cell_height = 2 * apothem;
   return TRUE;
-}
-
-
-/* static void
- * draw_hexagon (cairo_t *cr, double cx, double cy, double radious,
- *               double r, double g, double b, double border)
- * {
- *   int i;
- *   cairo_set_source_rgb (cr, 0, 0, 0);
- *   cairo_move_to (cr, cx + radious, cy);
- *   cairo_set_line_width (cr, border);
- *   for (i=1; i<6; i++)
- *     {
- *       double angle = 2*i*M_PI/6;
- *       cairo_line_to (cr, cx + radious*cos(angle), cy + radious*sin(angle));
- *     }
- *   cairo_close_path (cr);
- *   cairo_stroke_preserve (cr);
- *   cairo_set_source_rgb (cr, r, g, b);
- *   cairo_fill (cr);
- * } */
-
-static void
-stroke_hexagon (cairo_t *cr, double cx, double cy, double radious, double border)
-{
-  int i;
-  cairo_set_line_width (cr, border);
-  cairo_set_source_rgb (cr, 0, 0, 0);
-  cairo_move_to (cr, cx + radious, cy);
-  for (i=1; i<6; i++)
-    {
-      double angle = 2*i*M_PI/6;
-      cairo_line_to (cr, cx + radious*cos(angle), cy + radious*sin(angle));
-    }
-  cairo_close_path (cr);
-  cairo_stroke (cr);
-}
-
-static void
-fill_hexagon (cairo_t *cr, double cx, double cy, double radious,
-              double r, double g, double b)
-{
-  int i;
-  cairo_set_source_rgb (cr, r, g, b);
-  cairo_move_to (cr, cx + radious, cy);
-  for (i=1; i<6; i++)
-    {
-      double angle = 2*i*M_PI/6;
-      cairo_line_to (cr, cx + radious*cos(angle), cy + radious*sin(angle));
-    }
-  cairo_close_path (cr);
-  cairo_fill (cr);
 }
 
 
@@ -420,32 +365,50 @@ static void
 draw_board (Hexboard * hexboard, cairo_t * cr, gint width, gint height)
 {
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
+  double radious;
   int n = st->size;
   int i, j;
   draw_border_rd (hexboard, cr);
   draw_border_ld (hexboard, cr);
   draw_border_lu (hexboard, cr);
   draw_border_ru (hexboard, cr);
+  radious = st->cell_width/2;
   /* Cells */
   for (j=0; j<n; j++)
     {
       for (i=0; i<n; i++)
         {
+          int neighbors[6][2];
           int x,y;
-          cell_to_pixel (hexboard, i, j, &x, &y);
-          fill_hexagon (cr, x, y, st->cell_width/2,
-                        st->look[i][j].r,
-                        st->look[i][j].g,
-                        st->look[i][j].b);
+          cell_to_pixel (hexboard, i, j, &x, &y);;
+          cairo_set_source_rgb (cr, st->look[i][j].r, st->look[i][j].g, st->look[i][j].b);
+          cairo_move_to (cr, x + radious, y);
+          cairo_line_to (cr, x + radious*cos(2*1*M_PI/6), y + radious*sin(2*1*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*2*M_PI/6), y + radious*sin(2*2*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*3*M_PI/6), y + radious*sin(2*3*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*4*M_PI/6), y + radious*sin(2*4*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*5*M_PI/6), y + radious*sin(2*5*M_PI/6));
+          cairo_close_path (cr);
+          cairo_fill (cr);
         }
     }
+  /* Edges */
+  cairo_set_source_rgb (cr, 0, 0, 0);
   for (j=0; j<n; j++)
     {
       for (i=0; i<n; i++)
         {
           int x,y;
           cell_to_pixel (hexboard, i, j, &x, &y);
-          stroke_hexagon (cr, x, y, st->cell_width/2, st->look[i][j].border);
+          cairo_set_line_width (cr, st->look[i][j].border);
+          cairo_move_to (cr, x + radious, y);
+          cairo_line_to (cr, x + radious*cos(2*1*M_PI/6), y + radious*sin(2*1*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*2*M_PI/6), y + radious*sin(2*2*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*3*M_PI/6), y + radious*sin(2*3*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*4*M_PI/6), y + radious*sin(2*4*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*5*M_PI/6), y + radious*sin(2*5*M_PI/6));
+          cairo_line_to (cr, x + radious*cos(2*6*M_PI/6), y + radious*sin(2*6*M_PI/6));
+          cairo_stroke (cr);
         }
     }
 }
