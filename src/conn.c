@@ -164,11 +164,10 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     {
       char *filename;
+      char * ext;
       gint width, height;
       GtkFileFilter * filter;
-      char * ext;
       gboolean successp;
-
       filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
       filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (dialog));
       gdk_window_get_size (hexboard->window, &width, &height);
@@ -186,7 +185,6 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
 
       g_free (filename);
     }
-
   gtk_widget_destroy (dialog);
 }
 
@@ -206,13 +204,12 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
   update_history_buttons();
   if (status == HEX_SUCCESS)
     {
+      double r = colors[player][0];
+      double g = colors[player][1];
+      double b = colors[player][2];
       if (!first_move_p)
-        hexboard_cell_set_border (HEXBOARD(widget), old_i, old_j,
-                                  CELL_NORMAL_BORDER_WIDTH);
-      hexboard_cell_set_color (HEXBOARD(widget), i, j,
-                               colors[player][0],
-                               colors[player][1],
-                               colors[player][2]);
+        hexboard_cell_set_border (HEXBOARD(widget), old_i, old_j, CELL_NORMAL_BORDER_WIDTH);
+      hexboard_cell_set_color (HEXBOARD(widget), i, j, r, g, b);
       hexboard_cell_set_border (HEXBOARD(widget), i, j, CELL_SELECT_BORDER_WIDTH);
       check_end_of_game();
     }
@@ -236,14 +233,13 @@ update_hexboard_colors (void)
       for (i=0; i<size; i++)
         {
           int player = hex_cell_player (game, i, j);
+          double r = colors[player][0];
+          double g = colors[player][1];
+          double b = colors[player][2];
           hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
-          hexboard_cell_set_color (hex, i, j,
-                                   colors[player][0],
-                                   colors[player][1],
-                                   colors[player][2]);
+          hexboard_cell_set_color (hex, i, j, r, g, b);
         }
     }
-
   first_move_p = !hex_history_last_move (game, &i, &j);
   if (!first_move_p)
     hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_SELECT_BORDER_WIDTH);
@@ -299,15 +295,12 @@ check_end_of_game (void)
           int a_connected_p = hex_cell_a_connected_p (game, i, j) > 0;
           int z_connected_p = hex_cell_z_connected_p (game, i, j) > 0;
           double alpha;
-          if (a_connected_p && z_connected_p)
-            alpha = 0;
-          else
-            alpha = -0.5;
+          double r = CLIP (colors[player][0] + alpha, 0, 1);
+          double g = CLIP (colors[player][1] + alpha, 0, 1);
+          double b = CLIP (colors[player][2] + alpha, 0, 1);
+          alpha = a_connected_p && z_connected_p? 0: -0.5;
           hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
-          hexboard_cell_set_color (hex, i, j,
-                                   CLIP (colors[player][0] + alpha, 0, 1),
-                                   CLIP (colors[player][1] + alpha, 0, 1),
-                                   CLIP (colors[player][2] + alpha, 0, 1));
+          hexboard_cell_set_color (hex, i, j, r, g, b);
         }
     }
 }
@@ -362,7 +355,6 @@ ui_signal_history_last (GtkToolButton * button, gpointer data)
   gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p(game));
 }
 
-
 void
 ui_signal_undo (GtkMenuItem * item, gpointer data)
 {
@@ -392,7 +384,6 @@ ui_signal_redo (GtkMenuItem * item, gpointer data)
 }
 
 
-
 int
 main (int argc, char * argv[])
 {
@@ -411,8 +402,7 @@ main (int argc, char * argv[])
   game = hex_new (DEFAULT_BOARD_SIZE);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);
   hexboard = hexboard_new(DEFAULT_BOARD_SIZE);
-  g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked",
-                    G_CALLBACK(ui_signal_cell_clicked), game);
+  g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked", G_CALLBACK(ui_signal_cell_clicked), game);
   gtk_container_add (GTK_CONTAINER(box), hexboard);
   gtk_widget_show_all (window);
 
