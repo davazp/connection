@@ -53,6 +53,7 @@ static hex_t game;
 
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
+static void update_hexboard_sensitive (void);
 static void check_end_of_game (void);
 
 void
@@ -111,6 +112,7 @@ ui_signal_new (GtkMenuItem * item, gpointer data)
   hex_reset (game);
   history_marker = undo_history_marker = 0;
   update_hexboard_colors();
+  update_hexboard_sensitive();
   update_history_buttons();
 }
 
@@ -274,6 +276,16 @@ update_history_buttons (void)
     gtk_widget_set_sensitive (redo, FALSE);
 }
 
+
+static void
+update_hexboard_sensitive (void)
+{
+  boolean sensitivep;
+  sensitivep = (history_marker == undo_history_marker && !hex_end_of_game_p (game));
+  gtk_widget_set_sensitive (hexboard, sensitivep);
+}
+
+
 /* Check if the game is over and draw a visual effect on the board. */
 static void
 check_end_of_game (void)
@@ -319,7 +331,7 @@ ui_signal_history_first (GtkToolButton * button, gpointer data)
   history_marker = 0;
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, size==0);
+  update_hexboard_sensitive();
 }
 
 void
@@ -329,7 +341,7 @@ ui_signal_history_backward (GtkToolButton * button, gpointer data)
   hex_history_jump (game, --history_marker);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, FALSE);
+  update_hexboard_sensitive();
 }
 
 void
@@ -339,8 +351,8 @@ ui_signal_history_forward (GtkToolButton * button, gpointer data)
   hex_history_jump (game, ++history_marker);
   update_hexboard_colors();
   update_history_buttons();
+  update_hexboard_sensitive();
   check_end_of_game();
-  gtk_widget_set_sensitive (hexboard, history_marker==undo_history_marker);
 }
 
 void
@@ -351,8 +363,8 @@ ui_signal_history_last (GtkToolButton * button, gpointer data)
   history_marker = undo_history_marker;
   update_hexboard_colors();
   update_history_buttons();
+  update_hexboard_sensitive();
   check_end_of_game();
-  gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p(game));
 }
 
 void
@@ -365,7 +377,7 @@ ui_signal_undo (GtkMenuItem * item, gpointer data)
   hex_history_jump (game, undo_history_marker);
   update_hexboard_colors();
   update_history_buttons();
-  gtk_widget_set_sensitive (hexboard, TRUE);
+  update_hexboard_sensitive();
 }
 
 void
@@ -379,8 +391,8 @@ ui_signal_redo (GtkMenuItem * item, gpointer data)
   hex_history_jump (game, history_marker);
   update_hexboard_colors();
   update_history_buttons();
+  update_hexboard_sensitive();
   check_end_of_game();
-  gtk_widget_set_sensitive (hexboard, !hex_end_of_game_p(game));
 }
 
 
