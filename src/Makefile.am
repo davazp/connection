@@ -2,6 +2,8 @@ bin_PROGRAMS = connection
 connection_CFLAGS = $(GTK_CFLAGS)
 connection_LDFLAGS = $(GTK_LIBS) -export-dynamic -lm
 connection_SOURCES = conn.c \
+                     conn-ui.c \
+                     conn-ui.h \
                      conn-utils.c \
                      conn-utils.h \
                      conn-hex.c \

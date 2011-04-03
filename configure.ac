@@ -1,4 +1,4 @@
-AC_INIT([connection],[0.1])
+AC_INIT([Connection],[0.1])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE(connection, 0.1)
 AC_CONFIG_HEADERS([src/config.h])
