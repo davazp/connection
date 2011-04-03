@@ -306,11 +306,10 @@ check_end_of_game (void)
           int player = hex_cell_player (game, i, j);
           int a_connected_p = hex_cell_a_connected_p (game, i, j) > 0;
           int z_connected_p = hex_cell_z_connected_p (game, i, j) > 0;
-          double alpha;
+          double alpha = a_connected_p && z_connected_p? 0: -0.5;
           double r = CLIP (colors[player][0] + alpha, 0, 1);
           double g = CLIP (colors[player][1] + alpha, 0, 1);
           double b = CLIP (colors[player][2] + alpha, 0, 1);
-          alpha = a_connected_p && z_connected_p? 0: -0.5;
           hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
           hexboard_cell_set_color (hex, i, j, r, g, b);
         }
