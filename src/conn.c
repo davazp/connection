@@ -23,9 +23,9 @@
 #include "conn-utils.h"
 #include "conn-ui.h"
 
-const char short_options[] = "vh";
+static const char short_options[] = "vh";
 
-const static struct option long_options[] = {
+static const struct option long_options[] = {
   {"version", no_argument, NULL, 'v'},
   NULL};
 
@@ -50,6 +50,11 @@ main (int argc, char * argv[])
           break;
         }
     }
+
+  /* Internationalization */
+  setlocale(LC_ALL, "");
+  bindtextdomain(PACKAGE, LOCALEDIR);
+  textdomain(PACKAGE);
   /* Initialize GTK library and run the Connection user interface. */
   gtk_init (&argc, &argv);
   ui_main();

@@ -31,7 +31,8 @@
 
 #define DEFAULT_BOARD_SIZE 13
 
-#define UI_BUILDER_FILENAME "./connection.ui"
+#define UI_BUILDER_FILENAME "connection.ui"
+#define UI_BUILDER_FILE (PKGDATADIR "/" UI_BUILDER_FILENAME)
 #define CELL_NORMAL_BORDER_WIDTH 1
 #define CELL_SELECT_BORDER_WIDTH 3
 
@@ -399,8 +400,15 @@ ui_main (void)
   GtkWidget * box;
   GtkWidget * about;
   GtkWidget * window;
+  int success;
+
   builder = gtk_builder_new();
-  gtk_builder_add_from_file (builder, UI_BUILDER_FILENAME, NULL);
+  success = 0;
+  success |= gtk_builder_add_from_file (builder, UI_BUILDER_FILE,     NULL);
+  success |= gtk_builder_add_from_file (builder, UI_BUILDER_FILENAME, NULL);
+  if (!success)
+    fatal ("File '%s' not found.\n");
+
   gtk_builder_connect_signals (builder, NULL);
   window = GET_OBJECT("window");
   box = GET_OBJECT("box");

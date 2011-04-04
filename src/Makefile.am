@@ -1,6 +1,8 @@
+dist_pkgdata_DATA = connection.ui
+
 bin_PROGRAMS = connection
-connection_CFLAGS = $(GTK_CFLAGS)
-connection_LDFLAGS = $(GTK_LIBS) -export-dynamic -lm
+connection_CFLAGS = $(GTK_CFLAGS) -DLOCALEDIR="\"${localedir}\"" -DPKGDATADIR="\"${pkgdatadir}\""
+connection_LDFLAGS = $(GTK_LIBS) $(LIBINTL) -export-dynamic -lm
 connection_SOURCES = conn.c \
                      conn-ui.c \
                      conn-ui.h \
@@ -21,5 +23,3 @@ conn-marshallers.c: conn-marshallers.list
 
 conn-marshallers.h: conn-marshallers.list
 	glib-genmarshal --prefix conn_marshal --header $< > $@
-
-EXTRA_DIST = connection.ui

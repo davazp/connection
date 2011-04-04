@@ -33,10 +33,14 @@
 
 typedef int boolean;
 
+/* I18N */
+#define _(str)  gettext(str)
+#define N_(str) ngettext(str)
+
 /* The following macros are given by command-line at compile-time. You
    can use autoconf & automake to customize the values. */
 /* #undef LOCALEDIR */
-/* #undef CONNSHAREDIR */
+/* #undef PKGDATADIR */
 
 /* Error management */
 void error (const char * fmt, ...);
