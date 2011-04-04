@@ -183,7 +183,7 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
 
       successp = hexboard_save_as_image (HEXBOARD(hexboard), filename, ext, width, height);
       if (!successp)
-        ui_error ("An error ocurred while export the board.");
+        ui_error (_("An error ocurred while export the board."));
 
       g_free (filename);
     }

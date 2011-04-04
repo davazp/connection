@@ -3,7 +3,7 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="window">
-    <property name="title" translatable="yes">Connection</property>
+    <property name="title">Connection</property>
     <property name="window_position">center</property>
     <property name="default_width">800</property>
     <property name="default_height">600</property>
@@ -175,7 +175,6 @@
                 <child>
                   <object class="GtkToolButton" id="button-history-first">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">toolbutton1</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-goto-first</property>
                     <signal name="clicked" handler="ui_signal_history_first"/>
@@ -188,7 +187,6 @@
                 <child>
                   <object class="GtkToolButton" id="button-history-backward">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">toolbutton2</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-go-back</property>
                     <signal name="clicked" handler="ui_signal_history_backward"/>
@@ -201,7 +199,6 @@
                 <child>
                   <object class="GtkToolButton" id="button-history-forward">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">toolbutton3</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-go-forward</property>
                     <signal name="clicked" handler="ui_signal_history_forward"/>
@@ -214,7 +211,6 @@
                 <child>
                   <object class="GtkToolButton" id="button-history-last">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">toolbutton4</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-goto-last</property>
                     <signal name="clicked" handler="ui_signal_history_last"/>

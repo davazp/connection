@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include "conn-utils.h"
 
 /* Errors */
 
@@ -50,7 +51,7 @@ fatal(const char * fmt, ...)
 static void
 insuficient_memory(void)
 {
-  fatal ("Insuficient memory.\n");
+  fatal (_("Insuficient memory.\n"));
 }
 
 void*
