@@ -16,6 +16,5 @@ TAGS
 !po/*.in
 /po/POTFILES
 stamp-po
-/po/POTFILES.in
 /po/Makefile.in
 /aclocal.m4
