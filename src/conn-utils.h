@@ -21,6 +21,7 @@
 #define CONN_UTILS_H
 
 #include <stdlib.h>
+#include <libintl.h>
 
 #ifndef TRUE
 # define TRUE 1
@@ -32,11 +33,20 @@
 
 typedef int boolean;
 
-void conn_fatal(const char * fmt, ...);
+/* The following macros are given by command-line at compile-time. You
+   can use autoconf & automake to customize the values. */
+/* #undef LOCALEDIR */
+/* #undef CONNSHAREDIR */
 
+/* Error management */
+void error (const char * fmt, ...);
+void fatal(const char * fmt, ...);
+
+/* Memory management */
 void* conn_malloc(size_t size);
 void* conn_calloc(size_t nmemb, size_t size);
 void conn_free(void * pointer);
+
 
 #endif  /* CONN_UTILS_H */
 

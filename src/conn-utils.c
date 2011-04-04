@@ -24,19 +24,21 @@
 /* Errors */
 
 void
-conn_error (const char * fmt, ...)
+error (const char * fmt, ...)
 {
   va_list va;
   va_start (va, fmt);
+  fprintf (stderr, "ERROR: ");
   vfprintf (stderr, fmt, va);
   va_end (va);
 }
 
 void
-conn_fatal(const char * fmt, ...)
+fatal(const char * fmt, ...)
 {
   va_list va;
   va_start (va, fmt);
+  fprintf (stderr, "ERROR: ");
   vfprintf (stderr, fmt, va);
   va_end (va);
   exit (-1);
@@ -48,7 +50,7 @@ conn_fatal(const char * fmt, ...)
 static void
 insuficient_memory(void)
 {
-  conn_fatal ("ERROR: Insuficient memory.\n");
+  fatal ("Insuficient memory.\n");
 }
 
 void*
