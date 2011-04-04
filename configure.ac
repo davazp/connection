@@ -11,8 +11,11 @@ dnl GTK
 AM_PATH_GTK_2_0(2.0.0,,AC_MSG_ERROR(Connection needs GTK+2.0))
 
 dnl gettext
-AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.18.1])
+GETTEXT_PACKAGE=connection
+IT_PROG_INTLTOOL
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [The domain to use with gettext])
+AM_GLIB_GNU_GETTEXT
 
 dnl Generate output files
 AC_CONFIG_FILES([Makefile src/Makefile po/Makefile.in])

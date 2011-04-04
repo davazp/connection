@@ -53,8 +53,8 @@ main (int argc, char * argv[])
 
   /* Internationalization */
   setlocale(LC_ALL, "");
-  bindtextdomain(PACKAGE, LOCALEDIR);
-  textdomain(PACKAGE);
+  bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+  textdomain(GETTEXT_PACKAGE);
   /* Initialize GTK library and run the Connection user interface. */
   gtk_init (&argc, &argv);
   ui_main();
