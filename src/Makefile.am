@@ -23,3 +23,6 @@ conn-marshallers.c: conn-marshallers.list
 
 conn-marshallers.h: conn-marshallers.list
 	glib-genmarshal --prefix conn_marshal --header $< > $@
+
+EXTRA_DIST = conn-marshallers.list
+
