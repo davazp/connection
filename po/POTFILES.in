@@ -1,4 +1,4 @@
 # List of source files which contain translatable strings.
 src/conn.c
 src/conn-ui.c
-src/connection.glade
+[type: gettext/glade]src/connection.ui

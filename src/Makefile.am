@@ -1,4 +1,4 @@
-dist_pkgdata_DATA = connection.glade
+dist_pkgdata_DATA = connection.ui
 
 bin_PROGRAMS = connection
 connection_CFLAGS = $(GTK_CFLAGS) -DLOCALEDIR="\"${localedir}\"" -DPKGDATADIR="\"${pkgdatadir}\""

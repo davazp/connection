@@ -18,7 +18,7 @@ AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [The domain to use w
 AM_GLIB_GNU_GETTEXT
 
 dnl Generate output files
-AC_CONFIG_FILES([Makefile src/Makefile po/Makefile.in])
+AC_CONFIG_FILES([Makefile data/Makefile src/Makefile po/Makefile.in])
 AC_OUTPUT
 
 dnl end ofg configure.ac

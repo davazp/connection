@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Terminal=false
+Icon=connection
+Name=Connection
+Exec=connection
+Categories=Game;
+Comment=A collection of connection games.
+Comment[es]=Una colección de juegos de conexión.

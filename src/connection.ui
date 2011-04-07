@@ -7,6 +7,7 @@
     <property name="window_position">center</property>
     <property name="default_width">800</property>
     <property name="default_height">600</property>
+    <property name="icon_name">connection</property>
     <signal name="delete_event" handler="ui_signal_quit"/>
     <child>
       <object class="GtkVBox" id="vbox">
@@ -249,10 +250,10 @@
     <property name="modal">True</property>
     <property name="window_position">center</property>
     <property name="type_hint">dialog</property>
-    <property name="has_separator">False</property>
     <property name="program_name">Connection</property>
     <property name="version">&lt;version&gt;</property>
     <property name="copyright">Copyright (C) 2011 David V&#xE1;zquez P&#xFA;a</property>
+    <property name="website">https://github.com/davazp/connection</property>
     <property name="license">                    GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -928,6 +929,7 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 &lt;http://www.gnu.org/philosophy/why-not-lgpl.html&gt;.
 </property>
+    <property name="logo_icon_name">connection</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
