@@ -403,9 +403,9 @@ ui_main (void)
   int success;
 
   builder = gtk_builder_new();
-  success = 0;
-  success |= gtk_builder_add_from_file (builder, UI_BUILDER_FILE,     NULL);
-  success |= gtk_builder_add_from_file (builder, UI_BUILDER_FILENAME, NULL);
+  success = gtk_builder_add_from_file (builder, UI_BUILDER_FILE, NULL);
+  if (!success)
+    success = gtk_builder_add_from_file (builder, UI_BUILDER_FILENAME, NULL);
   if (!success)
     fatal ("File '%s' not found.\n");
 

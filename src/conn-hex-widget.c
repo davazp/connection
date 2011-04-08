@@ -403,7 +403,6 @@ draw_board (Hexboard * hexboard, cairo_t * cr, gint width, gint height)
     {
       for (i=0; i<n; i++)
         {
-          int neighbors[6][2];
           int x,y;
           cell_to_pixel (hexboard, i, j, &x, &y);;
           cairo_set_source_rgb (cr, st->look[i][j].r, st->look[i][j].g, st->look[i][j].b);
