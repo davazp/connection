@@ -83,11 +83,9 @@ typedef struct _HexboardPrivate {
   float cell_width;
   float cell_height;
   struct {
-    double r;
-    double g;
-    double b;
-    double border;
-  } look[BOARD_MAX_SIZE][BOARD_MAX_SIZE];
+    double r, g, b;             /* Color */
+    double border;              /* Border witdh */
+  } cells[BOARD_MAX_SIZE][BOARD_MAX_SIZE];
   double border_color[4][3];
 } HexboardPrivate;
 
@@ -189,10 +187,10 @@ hexboard_init(Hexboard * hexboard)
     {
       for (j=0; j<size; j++)
         {
-          state->look[i][j].r = 1;
-          state->look[i][j].g = 1;
-          state->look[i][j].b = 1;
-          state->look[i][j].border = 1;
+          state->cells[i][j].r = 1;
+          state->cells[i][j].g = 1;
+          state->cells[i][j].b = 1;
+          state->cells[i][j].border = 1;
         }
     }
   gtk_widget_add_events (GTK_WIDGET (hexboard), GDK_BUTTON_PRESS_MASK);
@@ -373,6 +371,31 @@ draw_border_ne (Hexboard * hexboard, cairo_t * cr, double r, double g, double b)
   cairo_fill (cr);
 }
 
+static inline void
+draw_cell_path (Hexboard * hexboard, cairo_t * cr, gint i, gint j)
+{
+  /* We want to avoid adjacent vertex to be the different same exact
+     coordinates, because it causes seams. So, we use a hack. We take
+     the coordinates of the two bottom vertex from each cell. */
+  HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
+  double radious = st->cell_width/2;
+  int x0, y0;
+  int x1, y1;
+  int x2, y2;
+  int x3, y3;
+  cell_to_pixel (hexboard, i+0, j+0, &x0, &y0);
+  cell_to_pixel (hexboard, i+1, j+0, &x1, &y1);
+  cell_to_pixel (hexboard, i+1, j+1, &x2, &y2);
+  cell_to_pixel (hexboard, i+0, j+1, &x3, &y3);
+
+  cairo_move_to (cr, x0 - radious/2, y0 + sqrt(3)/2 * radious);
+  cairo_line_to (cr, x0 + radious/2, y0 + sqrt(3)/2 * radious);
+  cairo_line_to (cr, x1 - radious/2, y1 + sqrt(3)/2 * radious);
+  cairo_line_to (cr, x2 + radious/2, y2 + sqrt(3)/2 * radious);
+  cairo_line_to (cr, x2 - radious/2, y2 + sqrt(3)/2 * radious);
+  cairo_line_to (cr, x3 + radious/2, y3 + sqrt(3)/2 * radious);
+  cairo_close_path (cr);
+}
 
 static void
 draw_board (Hexboard * hexboard, cairo_t * cr, gint width, gint height)
@@ -403,35 +426,19 @@ draw_board (Hexboard * hexboard, cairo_t * cr, gint width, gint height)
     {
       for (i=0; i<n; i++)
         {
-          int x,y;
-          cell_to_pixel (hexboard, i, j, &x, &y);;
-          cairo_set_source_rgb (cr, st->look[i][j].r, st->look[i][j].g, st->look[i][j].b);
-          cairo_move_to (cr, x + radious, y);
-          cairo_line_to (cr, x + radious*cos(2*1*M_PI/6), y + radious*sin(2*1*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*2*M_PI/6), y + radious*sin(2*2*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*3*M_PI/6), y + radious*sin(2*3*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*4*M_PI/6), y + radious*sin(2*4*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*5*M_PI/6), y + radious*sin(2*5*M_PI/6));
-          cairo_close_path (cr);
+          cairo_set_source_rgb (cr, st->cells[i][j].r, st->cells[i][j].g, st->cells[i][j].b);
+          draw_cell_path (hexboard, cr, i, j);
           cairo_fill (cr);
         }
     }
   /* Edges */
-  cairo_set_source_rgb (cr, 0, 0, 0);
   for (j=0; j<n; j++)
     {
       for (i=0; i<n; i++)
         {
-          int x,y;
-          cell_to_pixel (hexboard, i, j, &x, &y);
-          cairo_set_line_width (cr, st->look[i][j].border);
-          cairo_move_to (cr, x + radious, y);
-          cairo_line_to (cr, x + radious*cos(2*1*M_PI/6), y + radious*sin(2*1*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*2*M_PI/6), y + radious*sin(2*2*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*3*M_PI/6), y + radious*sin(2*3*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*4*M_PI/6), y + radious*sin(2*4*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*5*M_PI/6), y + radious*sin(2*5*M_PI/6));
-          cairo_line_to (cr, x + radious*cos(2*6*M_PI/6), y + radious*sin(2*6*M_PI/6));
+          cairo_set_line_width (cr, st->cells[i][j].border);
+          cairo_set_source_rgb (cr, 0, 0, 0);
+          draw_cell_path (hexboard, cr, i , j);
           cairo_stroke (cr);
         }
     }
@@ -517,9 +524,9 @@ hexboard_cell_get_color (Hexboard * board, gint i, gint j, double *r, double *g,
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
   if (i < 0 || i >= st->size || j < 0 || j >= st->size)
     return FALSE;
-  *r = st->look[i][j].r;
-  *g = st->look[i][j].g;
-  *b = st->look[i][j].b;
+  *r = st->cells[i][j].r;
+  *g = st->cells[i][j].g;
+  *b = st->cells[i][j].b;
   return TRUE;
 }
 
@@ -529,9 +536,9 @@ hexboard_cell_set_color (Hexboard * board, gint i, gint j, double r, double g, d
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
   if (i < 0 || i >= st->size || j < 0 || j >= st->size)
     return FALSE;
-  st->look[i][j].r = r;
-  st->look[i][j].g = g;
-  st->look[i][j].b = b;
+  st->cells[i][j].r = r;
+  st->cells[i][j].g = g;
+  st->cells[i][j].b = b;
   gtk_widget_queue_draw (GTK_WIDGET (board));
   return TRUE;
 }
@@ -542,7 +549,7 @@ hexboard_cell_get_border (Hexboard * board, gint i, gint j, double * border)
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
   if (i < 0 || i >= st->size || j < 0 || j >= st->size)
     return FALSE;
-  *border = st->look[i][j].border;
+  *border = st->cells[i][j].border;
   return TRUE;
 }
 
@@ -552,7 +559,7 @@ hexboard_cell_set_border (Hexboard * board, gint i, gint j, double border)
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (board);
   if (i < 0 || i >= st->size || j < 0 || j >= st->size)
     return FALSE;
-  st->look[i][j].border = border;
+  st->cells[i][j].border = border;
   gtk_widget_queue_draw (GTK_WIDGET (board));
   return TRUE;
 }
