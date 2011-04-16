@@ -55,6 +55,8 @@ main (int argc, char * argv[])
   setlocale(LC_ALL, "");
   bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
   textdomain(GETTEXT_PACKAGE);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+
   /* Initialize GTK library and run the Connection user interface. */
   gtk_init (&argc, &argv);
   ui_main();

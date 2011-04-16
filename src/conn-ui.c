@@ -49,8 +49,15 @@ static GtkBuilder * builder;
 static unsigned long history_marker;
 static unsigned long undo_history_marker;
 
+/* Hexboard widget. */
 static GtkWidget * hexboard;
+
+/* Keep player colors to paint cells and borders. */
+static double hexboard_color[3][3];
+
+/* The game logic. */
 static hex_t game;
+
 
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
@@ -106,23 +113,55 @@ ui_message (char * fmt, ...)
 void
 ui_signal_new (GtkMenuItem * item, gpointer data)
 {
-  int i,j;
-  size_t size;
-  size = hexboard_get_size (HEXBOARD (hexboard));
-  hex_reset (game);
-  history_marker = undo_history_marker = 0;
-  update_hexboard_colors();
-  update_hexboard_sensitive();
-  update_history_buttons();
+  Hexboard * board = HEXBOARD (hexboard);
+  GtkWidget * dialog = GET_OBJECT ("window-new");
+  GtkSpinButton * sizespin = GTK_SPIN_BUTTON (GET_OBJECT ("window-new-size"));
+  GtkColorButton * color1 = GTK_COLOR_BUTTON (GET_OBJECT ("window-new-color1"));
+  GtkColorButton * color2 = GTK_COLOR_BUTTON (GET_OBJECT ("window-new-color2"));
+  gint ok;
+  ok = gtk_dialog_run (GTK_DIALOG (dialog));
+  if (ok)
+    {
+      gint size = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON (sizespin));
+      GdkColor color;
+      double r,g,b;
+      hex_free (game);
+      game = hex_new (size);
+      hexboard_set_size (board, size);
+      history_marker = undo_history_marker = 0;
+
+      /* Colors */
+      hexboard_color[0][0] = hexboard_color[0][1] = hexboard_color[0][2] = 1;
+
+      gtk_color_button_get_color (color1, &color);
+      r = hexboard_color[1][0] = color.red / 65535.0;;
+      g = hexboard_color[1][1] = color.green / 65535.0;;
+      b = hexboard_color[1][2] = color.blue / 65535.0;;
+      hexboard_border_set_color (board, HEXBOARD_BORDER_SE, r,g,b);
+      hexboard_border_set_color (board, HEXBOARD_BORDER_NW, r,g,b);
+
+      gtk_color_button_get_color (color2, &color);
+      r = hexboard_color[2][0] = color.red / 65535.0;;
+      g = hexboard_color[2][1] = color.green / 65535.0;;
+      b = hexboard_color[2][2] = color.blue / 65535.0;;
+      hexboard_border_set_color (board, HEXBOARD_BORDER_NE, r,g,b);
+      hexboard_border_set_color (board, HEXBOARD_BORDER_SW, r,g,b);
+
+      update_hexboard_colors();
+      update_hexboard_sensitive();
+      update_history_buttons();
+    }
+  gtk_widget_hide (dialog);
 }
 
 void
 ui_signal_about (GtkMenuItem * item, gpointer data)
 {
-  GtkWidget * dialog = GET_OBJECT ("about");
+  GtkWidget * dialog = GET_OBJECT ("window-about");
   gtk_dialog_run (GTK_DIALOG (dialog));
   gtk_widget_hide (dialog);
 }
+
 
 void
 ui_signal_quit (GtkMenuItem * item, gpointer data)
@@ -194,7 +233,6 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
 void
 ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
 {
-  double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
   int player;
   int old_i, old_j;
   hex_status_t status;
@@ -206,9 +244,9 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
   update_history_buttons();
   if (status == HEX_SUCCESS)
     {
-      double r = colors[player][0];
-      double g = colors[player][1];
-      double b = colors[player][2];
+      double r = hexboard_color[player][0];
+      double g = hexboard_color[player][1];
+      double b = hexboard_color[player][2];
       if (!first_move_p)
         hexboard_cell_set_border (HEXBOARD(widget), old_i, old_j, CELL_NORMAL_BORDER_WIDTH);
       hexboard_cell_set_color (HEXBOARD(widget), i, j, r, g, b);
@@ -226,7 +264,6 @@ static void
 update_hexboard_colors (void)
 {
   Hexboard * hex = HEXBOARD(hexboard);
-  double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
   size_t size = hex_size (game);
   boolean first_move_p;
   int i, j;
@@ -235,9 +272,9 @@ update_hexboard_colors (void)
       for (i=0; i<size; i++)
         {
           int player = hex_cell_player (game, i, j);
-          double r = colors[player][0];
-          double g = colors[player][1];
-          double b = colors[player][2];
+          double r = hexboard_color[player][0];
+          double g = hexboard_color[player][1];
+          double b = hexboard_color[player][2];
           hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
           hexboard_cell_set_color (hex, i, j, r, g, b);
         }
@@ -290,7 +327,6 @@ update_hexboard_sensitive (void)
 static void
 check_end_of_game (void)
 {
-  double colors[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
   Hexboard * hex = HEXBOARD(hexboard);
   size_t size = hex_size (game);
   boolean first_move_p;
@@ -307,9 +343,9 @@ check_end_of_game (void)
           int a_connected_p = hex_cell_a_connected_p (game, i, j) > 0;
           int z_connected_p = hex_cell_z_connected_p (game, i, j) > 0;
           double alpha = a_connected_p && z_connected_p? 0: -0.5;
-          double r = CLIP (colors[player][0] + alpha, 0, 1);
-          double g = CLIP (colors[player][1] + alpha, 0, 1);
-          double b = CLIP (colors[player][2] + alpha, 0, 1);
+          double r = CLIP (hexboard_color[player][0] + alpha, 0, 1);
+          double g = CLIP (hexboard_color[player][1] + alpha, 0, 1);
+          double b = CLIP (hexboard_color[player][2] + alpha, 0, 1);
           hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
           hexboard_cell_set_color (hex, i, j, r, g, b);
         }
@@ -403,16 +439,16 @@ ui_main (void)
   int success;
 
   builder = gtk_builder_new();
-  success = gtk_builder_add_from_file (builder, UI_BUILDER_FILE, NULL);
+  success = gtk_builder_add_from_file (builder, UI_BUILDER_FILENAME, NULL);
   if (!success)
-    success = gtk_builder_add_from_file (builder, UI_BUILDER_FILENAME, NULL);
+    success = gtk_builder_add_from_file (builder, UI_BUILDER_FILE, NULL);
   if (!success)
     fatal ("File '%s' not found.\n");
 
   gtk_builder_connect_signals (builder, NULL);
   window = GET_OBJECT("window");
   box = GET_OBJECT("box");
-  about = GET_OBJECT ("about");
+  about = GET_OBJECT ("window-about");
 
   game = hex_new (DEFAULT_BOARD_SIZE);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);

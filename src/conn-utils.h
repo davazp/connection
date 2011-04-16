@@ -21,6 +21,7 @@
 #define CONN_UTILS_H
 
 #include <stdlib.h>
+#include <locale.h>
 #include <libintl.h>
 
 #ifndef TRUE
