@@ -135,7 +135,7 @@ boolean
 xmpp_connect (const char *user, const char * passwd, const char * server, unsigned short port)
 {
 
-  GError * error;
+  GError * error = NULL;
   LmMessage * m;
   LmMessage * reply;
   LmMessageNode * query;
