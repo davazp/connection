@@ -53,7 +53,7 @@ static unsigned long undo_history_marker;
 static GtkWidget * hexboard;
 
 /* Keep player colors to paint cells and borders. */
-static double hexboard_color[3][3];
+static double hexboard_color[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
 
 /* The game logic. */
 static hex_t game;
