@@ -23,9 +23,25 @@
 #include <gtk/gtk.h>
 #include "conn-ui.h"
 
+static GOptionEntry command_line_options[] =
+{
+  /* { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL }, */
+  { NULL }
+};
+
 int
 main (int argc, char * argv[])
 {
+  GOptionContext * context;
+  GError * error = NULL;
+  context = g_option_context_new (NULL);
+  g_option_context_add_main_entries (context, command_line_options, GETTEXT_PACKAGE);
+  g_option_context_add_group (context, gtk_get_option_group (TRUE));
+  if (!g_option_context_parse (context, &argc, &argv, &error))
+    {
+      g_print ("%s\n", error->message);
+      exit (EXIT_FAILURE);
+    }
   /* Internationalization */
   setlocale(LC_ALL, "");
   bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
