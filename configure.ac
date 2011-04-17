@@ -17,6 +17,11 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [The domain to use with gettext])
 AM_GLIB_GNU_GETTEXT
 
+dnl Check for Loudmouth
+PKG_CHECK_MODULES(LOUDMOUTH, loudmouth-1.0)
+AC_SUBST(LOUDMOUTH_CFLAGS)
+AC_SUBST(LOUDMOUTH_LIBS)
+
 dnl Generate output files
 AC_CONFIG_FILES([Makefile data/Makefile src/Makefile po/Makefile.in])
 AC_OUTPUT

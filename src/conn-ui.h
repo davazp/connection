@@ -20,9 +20,8 @@
 #ifndef CONN_UI_H
 #define CONN_UI_H
 
-void ui_main (void);
-void ui_error (const char *fmt, ...);
-void ui_message (char * fmt, ...);
+/* Start Connection itself */
+void ui_run (void);
 
 #endif
 

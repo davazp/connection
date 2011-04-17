@@ -20,8 +20,8 @@
 #ifndef CONN_HEX_H
 #define CONN_HEX_H
 
+#include "utils.h"
 #include <stdlib.h>
-#include "conn-utils.h"
 
 typedef struct hex_s * hex_t;
 

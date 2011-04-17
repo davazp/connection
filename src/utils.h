@@ -1,4 +1,4 @@
-/* conn-utils.h --- Functions and macros to use across of the project (Header) */
+/* utils.h --- Functions and macros to use across of the project (Header) */
 
 /* Copyright (C) 2011 David Vázquez Púa  */
 
@@ -17,10 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Connection.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef CONN_UTILS_H
-#define CONN_UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <locale.h>
 #include <libintl.h>
 
@@ -43,16 +44,6 @@ typedef int boolean;
 /* #undef LOCALEDIR */
 /* #undef PKGDATADIR */
 
-/* Error management */
-void error (const char * fmt, ...);
-void fatal(const char * fmt, ...);
+#endif  /* UTILS_H */
 
-/* Memory management */
-void* conn_malloc(size_t size);
-void* conn_calloc(size_t nmemb, size_t size);
-void conn_free(void * pointer);
-
-
-#endif  /* CONN_UTILS_H */
-
-/* conn-utils.h ends here */
+/* utils.h ends here */

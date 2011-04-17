@@ -18,6 +18,7 @@
  * along with Connection.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "config.h"
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,6 @@
 #include <math.h>
 #include <gtk/gtk.h>
 #include <assert.h>
-#include "conn-utils.h"
 #include "conn-hex.h"
 #include "conn-hex-widget.h"
 
@@ -58,55 +58,10 @@ static double hexboard_color[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
 /* The game logic. */
 static hex_t game;
 
-
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
 static void update_hexboard_sensitive (void);
 static void check_end_of_game (void);
-
-void
-ui_error (const gchar *fmt, ...)
-{
-  GtkWidget *window;
-  GtkWidget * dialog;
-  char buffer[256];
-  va_list va;
-  va_start (va,fmt);
-  vsnprintf (buffer, sizeof(buffer), fmt, va);
-  window = GET_OBJECT("window");
-  g_logv (G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, va);
-  dialog = gtk_message_dialog_new (GTK_WINDOW(window),
-                                   GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                                   GTK_MESSAGE_ERROR,
-                                   GTK_BUTTONS_OK,
-                                   buffer);
-  gtk_window_set_title (GTK_WINDOW (dialog), "Error");
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
-  va_end (va);
-}
-
-void
-ui_message (char * fmt, ...)
-{
-  char buffer[256];
-  va_list va;
-  static GtkWidget * statusbar;
-  static guint context;
-  static guint initialized = 0;
-  va_start (va, fmt);
-  if (!initialized)
-    {
-      statusbar = GET_OBJECT ("statusbar");
-      context = gtk_statusbar_get_context_id(GTK_STATUSBAR (statusbar), "Game messages");
-      initialized = 1;
-    }
-  vsnprintf (buffer, sizeof(buffer), fmt, va);
-  gtk_statusbar_pop (GTK_STATUSBAR (statusbar), context);
-  gtk_statusbar_push (GTK_STATUSBAR (statusbar), context, buffer);
-  va_end (va);
-}
-
 
 /* Signals */
 
@@ -222,7 +177,7 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
 
       successp = hexboard_save_as_image (HEXBOARD(hexboard), filename, ext, width, height);
       if (!successp)
-        ui_error (_("An error ocurred while export the board."));
+        g_message (_("An error ocurred while export the board."));
 
       g_free (filename);
     }
@@ -430,8 +385,47 @@ ui_signal_redo (GtkMenuItem * item, gpointer data)
 }
 
 
+
+
+/* Map G_LOG_LEVEL_MESSAGE logs to GTK error dialogs. */
+static void
+ui_log_level_message (const gchar * log_domain, GLogLevelFlags log_level,
+                      const char * message, gpointer user_data)
+{
+  GtkWidget *window = GET_OBJECT("window");;
+  GtkWidget * dialog;
+  dialog = gtk_message_dialog_new (GTK_WINDOW(window),
+                                   GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+                                   GTK_MESSAGE_ERROR,
+                                   GTK_BUTTONS_OK,
+                                   "%s", message);
+  gtk_window_set_title (GTK_WINDOW (dialog), _("Error"));
+  gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_destroy (dialog);
+}
+
+/* Map G_LOG_LEVEL_INFO logs to the window's status bar. */
+static void
+ui_log_level_info (const gchar * log_domain, GLogLevelFlags log_level,
+                   const char * message, gpointer user_data)
+{
+  static GtkWidget * statusbar;
+  static guint context;
+  static guint initialized = 0;
+  if (!initialized)
+    {
+      statusbar = GET_OBJECT ("statusbar");
+      context = gtk_statusbar_get_context_id(GTK_STATUSBAR (statusbar), "Game messages");
+      initialized = 1;
+    }
+  gtk_statusbar_pop (GTK_STATUSBAR (statusbar), context);
+  gtk_statusbar_push (GTK_STATUSBAR (statusbar), context, message);
+  gtk_main_iteration();
+}
+
+
 void
-ui_main (void)
+ui_run (void)
 {
   GtkWidget * box;
   GtkWidget * about;
@@ -443,12 +437,15 @@ ui_main (void)
   if (!success)
     success = gtk_builder_add_from_file (builder, UI_BUILDER_FILE, NULL);
   if (!success)
-    fatal ("File '%s' not found.\n");
+    g_error (_("User interface definition file '%s' was not found.\n"));
 
   gtk_builder_connect_signals (builder, NULL);
   window = GET_OBJECT("window");
   box = GET_OBJECT("box");
   about = GET_OBJECT ("window-about");
+
+  g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE, ui_log_level_message, NULL);
+  g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_INFO, ui_log_level_info, NULL);
 
   game = hex_new (DEFAULT_BOARD_SIZE);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);

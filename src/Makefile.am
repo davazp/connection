@@ -1,19 +1,24 @@
 dist_pkgdata_DATA = connection.ui
 
 bin_PROGRAMS = connection
-connection_CFLAGS = $(GTK_CFLAGS) -DLOCALEDIR="\"${localedir}\"" -DPKGDATADIR="\"${pkgdatadir}\""
-connection_LDFLAGS = $(GTK_LIBS) $(LIBINTL) -export-dynamic -lm
+connection_CFLAGS = $(GTK_CFLAGS) \
+                    $(LOUDMOUTH_CFLAGS) \
+                    -DLOCALEDIR="\"${localedir}\"" \
+                    -DPKGDATADIR="\"${pkgdatadir}\""
+
+connection_LDFLAGS = $(GTK_LIBS) $(LIBINTL) $(LOUDMOUTH_LIBS) -export-dynamic -lm
 connection_SOURCES = conn.c \
+                     utils.h \
                      conn-ui.c \
                      conn-ui.h \
-                     conn-utils.c \
-                     conn-utils.h \
                      conn-hex.c \
                      conn-hex.h \
                      conn-hex-widget.c \
                      conn-hex-widget.h \
                      conn-marshallers.c \
-                     conn-marshallers.h
+                     conn-marshallers.h \
+                     conn-xmpp.c \
+                     conn-xmpp.h
 
 conn-hex-widget.c: conn-marshallers.c conn-marshallers.h
 conn-hex-widget.c: conn-marshallers.c conn-marshallers.h

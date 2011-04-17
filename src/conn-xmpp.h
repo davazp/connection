@@ -1,4 +1,4 @@
-/* conn.c --- */
+/* conn-xmpp.h --- XMPP Multiplayer support (Header) */
 
 /* Copyright (C) 2011 David Vázquez Púa  */
 
@@ -17,25 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Connection.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "config.h"
-#include "utils.h"
-#include <string.h>
-#include <gtk/gtk.h>
-#include "conn-ui.h"
+#ifndef CONN_XMPP_H
+#define CONN_XMPP_H
 
-int
-main (int argc, char * argv[])
-{
-  /* Internationalization */
-  setlocale(LC_ALL, "");
-  bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
-  textdomain(GETTEXT_PACKAGE);
-  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-  /* Initialize GTK library and run the Connection user interface. */
-  gtk_init (&argc, &argv);
-  xmpp_init();
-  ui_run();
-  return 0;
-}
+void xmpp_init (void);
+boolean xmpp_connect (const char *user, const char * passwd, const char * server, unsigned short port)
+void xmpp_disconnect (void);
 
-/* conn.c ends here */
+#endif  /* CONN_XMPP_H */
+
+/* conn-xmpp.h ends here */

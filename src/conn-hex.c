@@ -17,10 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Connection.  If not, see <http://www.gnu.org/licenses/>. */
 
+#include "utils.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "conn-utils.h"
+#include <glib.h>
 #include "conn-hex.h"
 
 struct hex_cell_s {
@@ -64,9 +65,9 @@ hex_t
 hex_new (size_t size)
 {
   hex_t hex;
-  hex = conn_malloc (sizeof(struct hex_s));
-  hex->board = conn_malloc (size*size * sizeof(struct hex_cell_s));
-  hex->history = conn_malloc (sizeof(history_entry) * size * size);
+  hex = (hex_t)g_malloc (sizeof(struct hex_s));
+  hex->board = g_malloc (size*size * sizeof(struct hex_cell_s));
+  hex->history = g_malloc (sizeof(history_entry) * size * size);
   hex->size = size;
   hex_reset (hex);
   return hex;
@@ -92,8 +93,8 @@ hex_size (hex_t hex)
 void
 hex_free (hex_t hex)
 {
-  conn_free (hex->board);
-  conn_free (hex);
+  g_free (hex->board);
+  g_free (hex);
 }
 
 /* History */
