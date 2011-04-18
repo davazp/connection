@@ -374,9 +374,9 @@ draw_border_ne (Hexboard * hexboard, cairo_t * cr, double r, double g, double b)
 static inline void
 draw_cell_path (Hexboard * hexboard, cairo_t * cr, gint i, gint j)
 {
-  /* We want to avoid adjacent vertex to be the different same exact
-     coordinates, because it causes seams. So, we use a hack. We take
-     the coordinates of the two bottom vertex from each cell. */
+  /* We want to avoid adjacent vertex to be the different coordinates,
+     because it causes seams. So, we take the coordinates of the two
+     bottom vertex from each cell. */
   HexboardPrivate * st = HEXBOARD_GET_PRIVATE (hexboard);
   double radious = st->cell_width/2;
   int x0, y0;
