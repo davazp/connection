@@ -511,6 +511,7 @@ hexboard_set_size (Hexboard * hex, guint size)
       st->size = size;
       success = TRUE;
       gtk_widget_queue_draw (GTK_WIDGET(hex));
+      gtk_widget_queue_resize (GTK_WIDGET(hex));
     }
   else
     success = FALSE;
