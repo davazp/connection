@@ -7,16 +7,26 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Connection 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-16 04:37+0200\n"
+"POT-Creation-Date: 2011-04-18 00:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: David Vazquez <davazp@gmail.com>\n"
 "Language: Spanish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 
-#: ../src/conn-ui.c:225
+#: ../src/conn-ui.c:180
 msgid "An error ocurred while export the board."
 msgstr "Un error ocurrió mientras se exportaba el tablero."
+
+#: ../src/conn-ui.c:402
+msgid "Error"
+msgstr "Error"
+
+#: ../src/conn-ui.c:440
+#, c-format
+msgid "User interface definition file '%s' was not found.\n"
+msgstr ""
+"El archivo de la definición de la interfaz gráfica '%s' no se encontró.\n"
 
 #. conn-ui.c ends here
 #: ../src/connection.ui.h:1

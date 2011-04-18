@@ -109,6 +109,7 @@ ui_signal_new (GtkMenuItem * item, gpointer data)
   gtk_widget_hide (dialog);
 }
 
+
 void
 ui_signal_about (GtkMenuItem * item, gpointer data)
 {
@@ -179,6 +180,7 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
       if (!successp)
         g_message (_("An error ocurred while export the board."));
 
+      g_log (G_LOG_DOMAIN, G_LOG_LEVEL_INFO, _("Board was exported to %s."), filename);
       g_free (filename);
     }
   gtk_widget_destroy (dialog);
@@ -384,6 +386,28 @@ ui_signal_redo (GtkMenuItem * item, gpointer data)
   check_end_of_game();
 }
 
+void
+ui_signal_preferences (GtkMenuItem * item, gpointer data)
+{
+  GtkWidget * dialog = GET_OBJECT ("window-preferences");
+  gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_hide (dialog);
+}
+
+void
+ui_signal_connect (GtkMenuItem * item, gpointer data)
+{
+}
+
+void
+ui_signal_disconnect (GtkMenuItem * item, gpointer data)
+{
+}
+
+void
+ui_signal_network (GtkMenuItem * item, gpointer data)
+{
+}
 
 
 

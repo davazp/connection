@@ -84,6 +84,13 @@ intern_user (const char * jid)
   return user;
 }
 
+/* Remove an user from the user table. */
+static void
+remuser (const char * jid)
+{
+  g_hash_table_remove (user_table, jid);
+}
+
 
 
 /* Keep the connection descriptor to use in Loudmouth functions. */
@@ -105,10 +112,17 @@ xmpp_presence_callback (LmMessageHandler * handler, LmConnection * connection,
       *delimit = '\0';
       resource = delimit+1;
     }
-  user = intern_user (jid);
-  user->resource = g_strdup (resource);
-  user->status = ONLINE;
-  g_print ("%s (%s), %s\n", jid, user->name, user->resource);
+  switch (lm_message_get_sub_type (message))
+    {
+    case LM_MESSAGE_SUB_TYPE_AVAILABLE:
+      user = intern_user (jid);
+      user->resource = g_strdup (resource);
+      user->status = ONLINE;
+      break;
+    case LM_MESSAGE_SUB_TYPE_UNAVAILABLE:
+      remuser (jid);
+      break;
+    }
   g_free (jid);
 }
 
@@ -116,7 +130,7 @@ static LmHandlerResult
 xmp_message_callback (LmMessageHandler * handler, LmConnection * connection,
                       LmMessage * message, gpointer user_data)
 {
-  /* nothing yet */
+  g_print ("%s\n", lm_message_node_to_string (message->node));
 }
 
 
@@ -193,6 +207,8 @@ xmpp_disconnect (void)
 {
   lm_connection_close (connection, NULL);
   lm_connection_unref (connection);
+  destroy_user_table();
+  initialize_user_table();
 }
 
 
