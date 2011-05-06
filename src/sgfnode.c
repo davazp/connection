@@ -46,7 +46,6 @@
 #endif
 
 #include "sgftree.h"
-#include "gg_utils.h"
 
 #define STRICT_SGF 's'
 #define LAX_SGF    'l'
@@ -152,7 +151,7 @@ sgfAddPropertyInt(SGFNode *node, const char *name, long val)
 {
   char buffer[10];
 
-  gg_snprintf(buffer, 10, "%ld", val);
+  snprintf(buffer, 10, "%ld", val);
   sgfAddProperty(node, name, buffer);
 }
 
@@ -166,7 +165,7 @@ sgfAddPropertyFloat(SGFNode *node, const char *name, float val)
 {
   char buffer[10];
 
-  gg_snprintf(buffer, 10, "%3.1f", val);
+  snprintf(buffer, 10, "%3.1f", val);
   sgfAddProperty(node, name, buffer);
 }
 
@@ -286,7 +285,7 @@ sgfOverwritePropertyInt(SGFNode *node, const char *name, int val)
   for (prop = node->props; prop; prop = prop->next)
     if (prop->name == nam) {
       prop->value = xrealloc(prop->value, 12);
-      gg_snprintf(prop->value, 12, "%d", val);
+      snprintf(prop->value, 12, "%d", val);
       return;
    }
 
@@ -308,7 +307,7 @@ sgfOverwritePropertyFloat(SGFNode *node, const char *name, float val)
   for (prop = node->props; prop; prop = prop->next)
     if (prop->name == nam) {
       prop->value = xrealloc(prop->value, 15);
-      gg_snprintf(prop->value, 15, "%3.1f", val);
+      snprintf(prop->value, 15, "%3.1f", val);
       return;
     }
 
@@ -601,7 +600,7 @@ sgfBoardNumber(SGFNode *node, int i, int j, int number)
 {
   char text[10];
 
-  gg_snprintf(text, 10, "%c%c:%i", j+'a', i+'a', number);
+  snprintf(text, 10, "%c%c:%i", j+'a', i+'a', number);
   sgfAddProperty(node, "LB", text);
 
   return node;
@@ -617,7 +616,7 @@ sgfTriangle(SGFNode *node, int i, int j)
 {
   char text[3];
 
-  gg_snprintf(text, 3, "%c%c", j+'a', i+'a');
+  snprintf(text, 3, "%c%c", j+'a', i+'a');
   sgfAddProperty(node, "TR", text);
 
   return node;
@@ -634,7 +633,7 @@ sgfLabel(SGFNode *node, const char *label, int i, int j)
   /* allows 12 chars labels - more than enough */
   char text[16];
 
-  gg_snprintf(text, 16, "%c%c:%s", j+'a', i+'a', label);
+  snprintf(text, 16, "%c%c:%s", j+'a', i+'a', label);
   sgfAddProperty(node, "LB", text);
 
   return node;
@@ -650,7 +649,7 @@ sgfLabelInt(SGFNode *node, int num, int i, int j)
 {
   char text[16];
 
-  gg_snprintf(text, 16, "%c%c:%d", j+'a', i+'a', num);
+  snprintf(text, 16, "%c%c:%d", j+'a', i+'a', num);
   sgfAddProperty(node, "LB", text);
 
   return node;
@@ -666,7 +665,7 @@ sgfCircle(SGFNode *node, int i, int j)
 {
   char text[3];
 
-  gg_snprintf(text, 3, "%c%c", j+'a', i+'a');
+  snprintf(text, 3, "%c%c", j+'a', i+'a');
   sgfAddProperty(node, "CR", text);
 
   return node;
@@ -693,7 +692,7 @@ sgfMark(SGFNode *node, int i, int j)
 {
   char text[3];
 
-  gg_snprintf(text, 3, "%c%c", j+'a', i+'a');
+  snprintf(text, 3, "%c%c", j+'a', i+'a');
   sgfAddProperty(node, "MA", text);
 
   return node;
@@ -802,11 +801,11 @@ sgfWriteResult(SGFNode *node, float score, int overwrite)
   }
 
   if (winner == '0')
-    gg_snprintf(text, 8, "0");
+    snprintf(text, 8, "0");
   else if (score < 1000.0 && score > -1000.0)
-    gg_snprintf(text, 8, "%c+%3.1f", winner, s);
+    snprintf(text, 8, "%c+%3.1f", winner, s);
   else
-    gg_snprintf(text, 8, "%c+%c", winner, 'R');
+    snprintf(text, 8, "%c+%c", winner, 'R');
   sgfOverwriteProperty(node, "RE", text);
 }
 
@@ -819,7 +818,7 @@ sgf_write_header_reduced(SGFNode *root, int overwrite)
   char str[128];
   int dummy;
 
-  gg_snprintf(str, 128, "%4.4i-%2.2i-%2.2i",
+  snprintf(str, 128, "%4.4i-%2.2i-%2.2i",
 	      loctime->tm_year+1900, loctime->tm_mon+1, loctime->tm_mday);
   if (overwrite || !sgfGetIntProperty(root, "DT", &dummy))
     sgfOverwriteProperty(root, "DT", str);
@@ -836,7 +835,7 @@ sgf_write_header(SGFNode *root, int overwrite, int seed, float komi,
   char str[128];
   int dummy;
 
-  gg_snprintf(str, 128, "GNU Go %s Random Seed %d level %d",
+  snprintf(str, 128, "GNU Go %s Random Seed %d level %d",
 	      VERSION, seed, level);
   if (overwrite || !sgfGetIntProperty(root, "GN", &dummy))
     sgfOverwriteProperty(root, "GN", str);

@@ -23,7 +23,6 @@
 
 #include <assert.h>
 
-#include "gg_utils.h"
 #include "sgftree.h"
 
 void
