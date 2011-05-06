@@ -18,7 +18,11 @@ connection_SOURCES = conn.c \
                      conn-marshallers.c \
                      conn-marshallers.h \
                      conn-xmpp.c \
-                     conn-xmpp.h
+                     conn-xmpp.h \
+                     sgf_utils.c \
+                     sgfnode.c \
+                     sgftree.c \
+                     sgftree.h
 
 conn-hex-widget.c: conn-marshallers.c conn-marshallers.h
 conn-hex-widget.c: conn-marshallers.c conn-marshallers.h
