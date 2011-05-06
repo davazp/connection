@@ -58,6 +58,8 @@ static double hexboard_color[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
 /* The game logic. */
 static hex_t game;
 
+static char * game_file = NULL;
+
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
 static void update_hexboard_sensitive (void);
@@ -186,6 +188,41 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
   gtk_widget_destroy (dialog);
 }
 
+void
+ui_signal_save_as (GtkMenuItem * item, gpointer data)
+{
+  GtkWidget *dialog;
+  GtkWidget *window = GET_OBJECT("window");
+  GtkFileFilter * filter_sgf;
+  dialog = gtk_file_chooser_dialog_new ("Save",
+                                        GTK_WINDOW(window),
+                                        GTK_FILE_CHOOSER_ACTION_SAVE,
+                                        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                        GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+                                        NULL);
+  /* Set filters */
+  filter_sgf = gtk_file_filter_new();
+  gtk_file_filter_set_name (filter_sgf, "Smart Game Format (SGF)");
+  gtk_file_filter_add_pattern (filter_sgf, "*.[h]sgf");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_sgf);
+
+  if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+    {
+      g_free (game_file);
+      game_file = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      hex_save_sgf (game, game_file);
+    }
+  gtk_widget_destroy (dialog);
+}
+
+void
+ui_signal_save (GtkMenuItem * item, gpointer data)
+{
+  if (game_file == NULL)
+    ui_signal_save_as (item, data);
+  else
+    hex_save_sgf (game, game_file);
+}
 
 void
 ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)

@@ -22,6 +22,7 @@
 
 #include "utils.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef struct hex_s * hex_t;
 
@@ -49,6 +50,9 @@ boolean hex_history_last_move (hex_t hex, uint *i, uint *j);
 hex_status_t hex_move (hex_t hex, uint i, uint j);
 int hex_get_player (hex_t hex);
 boolean hex_end_of_game_p (hex_t hex);
+
+/* Load/Save */
+boolean hex_save_sgf (hex_t hex, char * filename);
 
 /* Examining the board */
 int hex_cell_player        (hex_t hex, uint i, uint j);

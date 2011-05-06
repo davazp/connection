@@ -19,6 +19,7 @@
 
 #include "utils.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <glib.h>
@@ -370,6 +371,28 @@ recompute_setting (hex_t hex)
         }
     }
 }
+
+
+/* Load/Save with Smart Game Format */
+
+boolean
+hex_save_sgf (hex_t hex, char * filename)
+{
+  FILE * file = fopen (filename, "w");
+  int k;
+  fprintf(file, "(;FF[4]SZ[%i]", hex->size);
+  for (k=0; k<hex->history_size; k++)
+    {
+      int i = hex->history[k][0];
+      int j = hex->size-1-hex->history[k][1];
+      int player_char = (k%2==0) ? 'W' : 'B';
+      fprintf (file, ";%c[%c%i]", player_char, 'a' + i, j);
+    }
+  fputc (')', file);
+  fclose (file);
+  return TRUE;
+}
+
 
 
 
