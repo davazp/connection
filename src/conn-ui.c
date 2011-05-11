@@ -42,6 +42,7 @@
 
 /* Global variables */
 static GtkBuilder * builder;
+static GtkFileFilter * filter_sgf;
 
 /* A couple of points in the history of the game. HISTORY_POINT stands
    for the point which the user is viewing in the widget. Otherwise,
@@ -193,7 +194,6 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
 {
   GtkWidget *dialog;
   GtkWidget *window = GET_OBJECT("window");
-  GtkFileFilter * filter_sgf;
   dialog = gtk_file_chooser_dialog_new ("Save",
                                         GTK_WINDOW(window),
                                         GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -201,9 +201,6 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
                                         GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
                                         NULL);
   /* Set filters */
-  filter_sgf = gtk_file_filter_new();
-  gtk_file_filter_set_name (filter_sgf, "Smart Game Format (SGF)");
-  gtk_file_filter_add_pattern (filter_sgf, "*.[h]sgf");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_sgf);
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
@@ -220,7 +217,6 @@ ui_signal_open (GtkMenuItem * item, gpointer data)
 {
   GtkWidget *dialog;
   GtkWidget *window = GET_OBJECT("window");
-  GtkFileFilter * filter_sgf;
   char * filename;
 
   dialog = gtk_file_chooser_dialog_new ("Open",
@@ -230,9 +226,6 @@ ui_signal_open (GtkMenuItem * item, gpointer data)
                                         GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
                                         NULL);
   /* Set filters */
-  filter_sgf = gtk_file_filter_new();
-  gtk_file_filter_set_name (filter_sgf, "Smart Game Format (SGF)");
-  gtk_file_filter_add_pattern (filter_sgf, "*.[h]sgf");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_sgf);
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
@@ -547,6 +540,11 @@ ui_run (void)
   game = hex_new (DEFAULT_BOARD_SIZE);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);
   hexboard = hexboard_new(DEFAULT_BOARD_SIZE);
+  filter_sgf = gtk_file_filter_new();
+  gtk_file_filter_set_name (filter_sgf, "Smart Game Format (SGF)");
+  gtk_file_filter_add_pattern (filter_sgf, "*.hsgf");
+  gtk_file_filter_add_pattern (filter_sgf, "*.sgf");
+  g_object_ref_sink (filter_sgf);
   g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked", G_CALLBACK(ui_signal_cell_clicked), game);
   gtk_container_add (GTK_CONTAINER(box), hexboard);
   gtk_widget_show_all (window);
