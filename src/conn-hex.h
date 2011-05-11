@@ -52,6 +52,7 @@ int hex_get_player (hex_t hex);
 boolean hex_end_of_game_p (hex_t hex);
 
 /* Load/Save */
+hex_t hex_load_sgf (char * filename);
 boolean hex_save_sgf (hex_t hex, char * filename);
 
 /* Examining the board */

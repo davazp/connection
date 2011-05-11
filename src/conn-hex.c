@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <glib.h>
 #include "conn-hex.h"
+#include "sgftree.h"
 
 struct hex_cell_s {
   unsigned int a_connected : 1;
@@ -393,6 +394,65 @@ hex_save_sgf (hex_t hex, char * filename)
   return TRUE;
 }
 
+hex_t
+hex_load_sgf (char * filename)
+{
+  hex_t hex;
+  char * size_str;
+  SGFNode * root;
+  SGFNode * node;
+  if ((root = readsgffile (filename)) == NULL)
+    return NULL;
+  if (! sgfGetCharProperty (root, "SZ", &size_str))
+    return NULL;
+  hex = hex_new (atoi (size_str));
+  for (node = root->child; node != NULL; node = node->child)
+    {
+      uint i, j;
+      char * move;
+      char * prop_name;
+
+      if (hex_get_player (hex) == 1)
+        prop_name = "W ";
+      else if (hex_get_player (hex) == 2)
+        prop_name = "B ";
+      else
+        return NULL;
+
+      if (! sgfGetCharProperty (node, prop_name, &move))
+        break;
+
+      /* Ignore swaps until they're implemented. */
+      if (! strcmp ("swap", move))
+        continue;
+
+      if (! strcmp ("resign", move))
+        break;
+
+      if (isupper (move[0]))
+        i = move[0] - 'A';
+      else if (islower (move[0]))
+        i = move[0] - 'a';
+      else
+        return NULL;
+
+      if (isupper (move[1]))
+        j = hex->size - (move[1] - 'A') - 1;
+      else if (islower (move[1]))
+        j = hex->size - (move[1] - 'a') - 1;
+      else if (isdigit (move[1]))
+        j = hex->size - atoi (move+1) - 1;
+      else
+        return NULL;
+
+      if (i < hex->size && j < hex->size)
+        hex_move (hex, i, j);
+      else
+        return NULL;
+    }
+  sgfFreeNode (root);
+  return hex;
+}
 
 
 

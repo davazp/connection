@@ -216,6 +216,42 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
 }
 
 void
+ui_signal_open (GtkMenuItem * item, gpointer data)
+{
+  GtkWidget *dialog;
+  GtkWidget *window = GET_OBJECT("window");
+  GtkFileFilter * filter_sgf;
+  char * filename;
+
+  dialog = gtk_file_chooser_dialog_new ("Open",
+                                        GTK_WINDOW(window),
+                                        GTK_FILE_CHOOSER_ACTION_OPEN,
+                                        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                        GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+                                        NULL);
+  /* Set filters */
+  filter_sgf = gtk_file_filter_new();
+  gtk_file_filter_set_name (filter_sgf, "Smart Game Format (SGF)");
+  gtk_file_filter_add_pattern (filter_sgf, "*.[h]sgf");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_sgf);
+
+  if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+    {
+      Hexboard * board = HEXBOARD (hexboard);
+      filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      hex_free (game);
+      game = hex_load_sgf (filename);
+      hexboard_set_size (board, hex_size (game));
+      g_free (filename);
+      history_marker = undo_history_marker = hex_history_current (game);
+      update_hexboard_colors ();
+      update_hexboard_sensitive();
+      update_history_buttons();
+    }
+  gtk_widget_destroy (dialog);
+}
+
+void
 ui_signal_save (GtkMenuItem * item, gpointer data)
 {
   if (game_file == NULL)
