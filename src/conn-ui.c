@@ -225,7 +225,7 @@ ui_signal_save (GtkMenuItem * item, gpointer data)
 }
 
 void
-ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t game)
+ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t ignore)
 {
   int player;
   int old_i, old_j;
