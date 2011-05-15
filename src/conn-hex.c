@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 #include <glib.h>
 #include "conn-hex.h"
 #include "sgftree.h"
@@ -377,25 +378,41 @@ recompute_setting (hex_t hex)
 /* Load/Save with Smart Game Format */
 
 boolean
-hex_save_sgf (hex_t hex, char * filename)
+hex_save_sgf (hex_t hex, hex_format_t format, char * filename)
 {
-  FILE * file = fopen (filename, "w");
+  FILE * file;
   int k;
+  if (format != HEX_SGF && format != HEX_LG_SGF)
+    return FALSE;
+  file = fopen (filename, "w");
   fprintf(file, "(;FF[4]SZ[%i]", hex->size);
   for (k=0; k<hex->history_size; k++)
     {
       int i = hex->history[k][0];
       int j = hex->size-1-hex->history[k][1];
-      int player_char = (k%2==0) ? 'W' : 'B';
-      fprintf (file, ";%c[%c%i]", player_char, 'a' + i, j);
+      if (format == HEX_SGF)
+        fprintf (file, ";%c[%c%c]", k%2 ? 'W' : 'B', 'a' + i, 'a' + j);
+      else
+        fprintf (file, ";%c[%c%i]", k%2 ? 'B' : 'W', 'a' + i, j);
     }
   fputc (')', file);
   fclose (file);
   return TRUE;
 }
 
+static int
+hex_decode_sgf_pos (char car)
+{
+  if (isupper (car))
+    return car - 'A';
+  else if (islower (car))
+    return car - 'a';
+  else
+    return -1;
+}
+
 hex_t
-hex_load_sgf (char * filename)
+hex_load_sgf (hex_format_t format, char * filename)
 {
   hex_t hex;
   char * size_str;
@@ -408,48 +425,54 @@ hex_load_sgf (char * filename)
   hex = hex_new (atoi (size_str));
   for (node = root->child; node != NULL; node = node->child)
     {
-      uint i, j;
+      uint i, x;
       char * move;
       char * prop_name;
 
-      if (hex_get_player (hex) == 1)
-        prop_name = "W ";
-      else if (hex_get_player (hex) == 2)
-        prop_name = "B ";
-      else
+      /* Swap isn't supported yet */
+      switch (format)
+        {
+        case HEX_AUTO:
+          if (sgfGetCharProperty (node, "W ", &move))
+            format = HEX_LG_SGF;
+          else if (sgfGetCharProperty (node, "B ", &move))
+            format = HEX_SGF;
+          else
+            return NULL;
+          break;
+        case HEX_SGF:
+          sgfGetCharProperty (node, hex_get_player (hex) == 1 ? "B " : "W ", &move);
+          if (! (strcmp ("swap-sides", move) || strcmp ("swap-pieces", move)))
+            return NULL;
+          if (! strcmp ("resign", move))
+            goto end;
+          break;
+        case HEX_LG_SGF:
+          sgfGetCharProperty (node, hex_get_player (hex) == 1 ? "W " : "B ", &move);
+          if (! strcmp ("swap", move))
+            return NULL;
+          if (! strcmp ("resign", move))
+            goto end;
+          break;
+        default:
+          return NULL;
+        }
+
+      errno = 0;
+      i = hex_decode_sgf_pos (move[0]);
+      if (errno || i >= hex->size)
         return NULL;
 
-      if (! sgfGetCharProperty (node, prop_name, &move))
-        break;
-
-      /* Ignore swaps until they're implemented. */
-      if (! strcmp ("swap", move))
-        continue;
-
-      if (! strcmp ("resign", move))
-        break;
-
-      if (isupper (move[0]))
-        i = move[0] - 'A';
-      else if (islower (move[0]))
-        i = move[0] - 'a';
-      else
+      if (format == HEX_SGF)
+        x = hex_decode_sgf_pos (move[1]);
+      else if (format == HEX_LG_SGF)
+        x = atoi (move+1);
+      if (errno || x >= hex->size)
         return NULL;
 
-      if (isupper (move[1]))
-        j = hex->size - (move[1] - 'A') - 1;
-      else if (islower (move[1]))
-        j = hex->size - (move[1] - 'a') - 1;
-      else if (isdigit (move[1]))
-        j = hex->size - atoi (move+1) - 1;
-      else
-        return NULL;
-
-      if (i < hex->size && j < hex->size)
-        hex_move (hex, i, j);
-      else
-        return NULL;
+      hex_move (hex, i, hex->size-x-1);
     }
+ end:
   sgfFreeNode (root);
   return hex;
 }

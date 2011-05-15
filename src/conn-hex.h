@@ -52,8 +52,17 @@ int hex_get_player (hex_t hex);
 boolean hex_end_of_game_p (hex_t hex);
 
 /* Load/Save */
-hex_t hex_load_sgf (char * filename);
-boolean hex_save_sgf (hex_t hex, char * filename);
+typedef enum {
+  /* Detect from first move */
+  HEX_AUTO,
+  /* Official Smart Game Format */
+  HEX_SGF,
+  /* Format used in LittleGolem */
+  HEX_LG_SGF
+} hex_format_t;
+
+hex_t hex_load_sgf (hex_format_t format, char * filename);
+boolean hex_save_sgf (hex_t hex, hex_format_t format, char * filename);
 
 /* Examining the board */
 int hex_cell_player        (hex_t hex, uint i, uint j);

@@ -42,7 +42,9 @@
 
 /* Global variables */
 static GtkBuilder * builder;
+static GtkFileFilter * filter_auto;
 static GtkFileFilter * filter_sgf;
+static GtkFileFilter * filter_lg_sgf;
 
 /* A couple of points in the history of the game. HISTORY_POINT stands
    for the point which the user is viewing in the widget. Otherwise,
@@ -60,6 +62,7 @@ static double hexboard_color[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
 static hex_t game;
 
 static char * game_file = NULL;
+static hex_format_t game_format;
 
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
@@ -189,6 +192,21 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
   gtk_widget_destroy (dialog);
 }
 
+static hex_format_t
+dialog_selected_format (GtkWidget * dialog)
+{
+  GtkFileFilter * filter;
+  filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (dialog));
+  if (filter == filter_auto)
+    return HEX_AUTO;
+  else if (filter == filter_sgf)
+    return HEX_SGF;
+  else if (filter == filter_lg_sgf)
+    return HEX_LG_SGF;
+  else
+    abort ();
+}
+
 void
 ui_signal_save_as (GtkMenuItem * item, gpointer data)
 {
@@ -202,12 +220,15 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
                                         NULL);
   /* Set filters */
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_sgf);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_lg_sgf);
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     {
       g_free (game_file);
       game_file = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-      hex_save_sgf (game, game_file);
+      game_format = dialog_selected_format (dialog);
+      if (game_format != HEX_AUTO)
+        hex_save_sgf (game, game_format, game_file);
     }
   gtk_widget_destroy (dialog);
 }
@@ -226,14 +247,17 @@ ui_signal_open (GtkMenuItem * item, gpointer data)
                                         GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
                                         NULL);
   /* Set filters */
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_auto);
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_sgf);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_lg_sgf);
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     {
       Hexboard * board = HEXBOARD (hexboard);
       filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
       hex_free (game);
-      game = hex_load_sgf (filename);
+      game_format = dialog_selected_format (dialog);
+      game = hex_load_sgf (game_format, filename);
       hexboard_set_size (board, hex_size (game));
       g_free (filename);
       history_marker = undo_history_marker = hex_history_current (game);
@@ -250,7 +274,7 @@ ui_signal_save (GtkMenuItem * item, gpointer data)
   if (game_file == NULL)
     ui_signal_save_as (item, data);
   else
-    hex_save_sgf (game, game_file);
+    hex_save_sgf (game, game_format, game_file);
 }
 
 void
@@ -540,11 +564,21 @@ ui_run (void)
   game = hex_new (DEFAULT_BOARD_SIZE);
   gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about), PACKAGE_VERSION);
   hexboard = hexboard_new(DEFAULT_BOARD_SIZE);
-  filter_sgf = gtk_file_filter_new();
+
+  filter_auto = gtk_file_filter_new ();
+  filter_sgf = gtk_file_filter_new ();
+  filter_lg_sgf = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter_auto, "Select Automatically");
   gtk_file_filter_set_name (filter_sgf, "Smart Game Format (SGF)");
-  gtk_file_filter_add_pattern (filter_sgf, "*.hsgf");
+  gtk_file_filter_set_name (filter_lg_sgf, "LittleGolem's Smart Game Format (SGF)");
+  gtk_file_filter_add_pattern (filter_auto, "*");
   gtk_file_filter_add_pattern (filter_sgf, "*.sgf");
+  gtk_file_filter_add_pattern (filter_lg_sgf, "*.hsgf");
+  gtk_file_filter_add_pattern (filter_lg_sgf, "*.sgf");
+  g_object_ref_sink (filter_auto);
   g_object_ref_sink (filter_sgf);
+  g_object_ref_sink (filter_lg_sgf);
+
   g_signal_connect (GTK_WIDGET(hexboard), "cell_clicked", G_CALLBACK(ui_signal_cell_clicked), game);
   gtk_container_add (GTK_CONTAINER(box), hexboard);
   gtk_widget_show_all (window);
