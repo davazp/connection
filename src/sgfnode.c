@@ -1,27 +1,26 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
- * This is GNU Go, a Go program. Contact gnugo@gnu.org, or see       *
- * http://www.gnu.org/software/gnugo/ for more information.          *
- *                                                                   *
- * Copyright 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,   *
- * 2008 and 2009 by the Free Software Foundation.                    *
- *                                                                   *
- * This program is free software; you can redistribute it and/or     *
- * modify it under the terms of the GNU General Public License as    *
- * published by the Free Software Foundation - version 3 or          *
- * (at your option) any later version.                               *
- *                                                                   *
- * This program is distributed in the hope that it will be useful,   *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of    *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the     *
- * GNU General Public License in file COPYING for more details.      *
- *                                                                   *
- * You should have received a copy of the GNU General Public         *
- * License along with this program; if not, write to the Free        *
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,       *
- * Boston, MA 02111, USA.                                            *
-\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* sgfnode.c -- */
 
-/*  Parts of this code were given to us by Tommy Thorn */
+/* Copyright (C) 2011 Mario Castelán Castro  */
+/* Copyright 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+   2006, 2007 2008 and 2009 by the Free Software Foundation. */
+
+/* This file is part of Connection.
+ *
+ * Connection is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Connection is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Connection.  If not, see <http://www.gnu.org/licenses/>. */
+
+/* This file was taken from GNU/Go. */
+/* Parts of this code were given to us by Tommy Thorn */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -32,7 +31,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
-
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -1550,8 +1548,6 @@ main()
   }
 }
 #endif
-
-
 
 /*
  * Local Variables:
