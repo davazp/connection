@@ -52,8 +52,8 @@ static GtkFileFilter * filter_sgf;
 static GtkFileFilter * filter_lg_sgf;
 
 /* A couple of points in the history of the game. HISTORY_POINT stands
-   for the point which the user is viewing in the widget. Otherwise,
-   UNDO_POINT stands for the point where movements are inserted. */
+   for the point which the user is viewing in the widget. On the other
+   hand, UNDO_POINT stands for the point where movements are done. */
 static unsigned long history_marker;
 static unsigned long undo_history_marker;
 
@@ -66,9 +66,11 @@ static double hexboard_color[3][3] = {{1,1,1}, {0,1,0}, {1,0,0}};
 /* The game logic. */
 static hex_t game;
 
-static char * game_file = NULL;
-static hex_format_t game_format;
+/* Save and load status */
+static char * game_file = NULL;  /* Current file game. */
+static hex_format_t game_format; /* The format of the current file game. */
 
+static void hex_to_widget (Hexboard * widget, hex_t hex);
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
 static void update_hexboard_sensitive (void);
@@ -244,11 +246,24 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
 }
 
 void
+ui_signal_open_update_preview (GtkFileChooser *dialog, Hexboard * board)
+{
+  /* TODO: Uncomment and do work this when SGF support is finished. */
+  /* gchar * filename = gtk_file_chooser_get_filename (dialog);
+   * hex_t game = hex_load_sgf (game_format, filename);
+   * size_t size = hex_size (game);
+   * hexboard_set_size (board, size);
+   * hex_to_widget (board, game);
+   * hex_free (game); */
+}
+
+void
 ui_signal_open (GtkMenuItem * item, gpointer data)
 {
   GtkWidget *dialog;
   GtkWidget *window = GET_OBJECT("window");
   char * filename;
+  Hexboard * board;
 
   dialog = gtk_file_chooser_dialog_new (_("Open"),
                                         GTK_WINDOW(window),
@@ -256,6 +271,15 @@ ui_signal_open (GtkMenuItem * item, gpointer data)
                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                                         GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
                                         NULL);
+
+  gtk_widget_set_size_request(GTK_WIDGET(dialog), 800, 600);
+
+  /* Configure the previewer widget */
+  board = HEXBOARD (hexboard_new (10));
+  gtk_widget_set_size_request(GTK_WIDGET(board), 340, 240);
+  gtk_file_chooser_set_preview_widget (GTK_FILE_CHOOSER(dialog), GTK_WIDGET(board));
+  g_signal_connect (dialog, "update-preview", G_CALLBACK (ui_signal_open_update_preview), board);
+
   /* Set filters */
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_auto);
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_sgf);
@@ -276,6 +300,7 @@ ui_signal_open (GtkMenuItem * item, gpointer data)
       update_hexboard_colors ();
       update_hexboard_sensitive();
       update_history_buttons();
+      check_end_of_game();
     }
   gtk_widget_destroy (dialog);
 }
@@ -317,30 +342,35 @@ ui_signal_cell_clicked (GtkWidget * widget, gint i, gint j, hex_t ignore)
 }
 
 
-/* Update the color of each cell of the Hexboard widget in screen,
-   according to the hex_t board stored.*/
 static void
-update_hexboard_colors (void)
+hex_to_widget (Hexboard * widget, hex_t hex)
 {
-  Hexboard * hex = HEXBOARD(hexboard);
-  size_t size = hex_size (game);
+  size_t size = hex_size (hex);
   boolean first_move_p;
   int i, j;
   for (j=0; j<size; j++)
     {
       for (i=0; i<size; i++)
         {
-          int player = hex_cell_player (game, i, j);
+          int player = hex_cell_player (hex, i, j);
           double r = hexboard_color[player][0];
           double g = hexboard_color[player][1];
           double b = hexboard_color[player][2];
-          hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_NORMAL_BORDER_WIDTH);
-          hexboard_cell_set_color (hex, i, j, r, g, b);
+          hexboard_cell_set_border (widget, i, j, CELL_NORMAL_BORDER_WIDTH);
+          hexboard_cell_set_color (widget, i, j, r, g, b);
         }
     }
-  first_move_p = !hex_history_last_move (game, &i, &j);
+  first_move_p = !hex_history_last_move (hex, &i, &j);
   if (!first_move_p)
-    hexboard_cell_set_border (HEXBOARD(hexboard), i, j, CELL_SELECT_BORDER_WIDTH);
+    hexboard_cell_set_border (widget, i, j, CELL_SELECT_BORDER_WIDTH);
+}
+
+/* Update the color of each cell of the Hexboard widget in screen,
+   according to the hex_t board stored.*/
+static void
+update_hexboard_colors (void)
+{
+  hex_to_widget (HEXBOARD(hexboard), game);
 }
 
 /* Update the sensitive of history buttons according to the history
