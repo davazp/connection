@@ -1,6 +1,7 @@
 /* conn-ui.c --- */
 
 /* Copyright (C) 2011 David Vázquez Púa  */
+/* Copyright (C) 2011 Mario Castelán Castro  */
 
 /* This file is part of Connection.
  *
@@ -30,6 +31,10 @@
 #include "conn-hex-widget.h"
 
 #define DEFAULT_BOARD_SIZE 13
+
+/* The title of the main window. The %s will be replaced by the name
+   of the current game filename. */
+#define UI_WINDOW_TITLE "Connection - %s"
 
 #define UI_BUILDER_FILENAME "connection.ui"
 #define UI_BUILDER_FILE (PKGDATADIR "/" UI_BUILDER_FILENAME)
@@ -67,6 +72,7 @@ static hex_format_t game_format;
 static void update_hexboard_colors (void);
 static void update_history_buttons (void);
 static void update_hexboard_sensitive (void);
+static void update_window_title(void);
 static void check_end_of_game (void);
 
 /* Signals */
@@ -108,6 +114,8 @@ ui_signal_new (GtkMenuItem * item, gpointer data)
       hexboard_border_set_color (board, HEXBOARD_BORDER_NE, r,g,b);
       hexboard_border_set_color (board, HEXBOARD_BORDER_SW, r,g,b);
 
+      game_file = NULL;
+      update_window_title();
       update_hexboard_colors();
       update_hexboard_sensitive();
       update_history_buttons();
@@ -141,7 +149,7 @@ ui_signal_export (GtkMenuItem * item, gpointer data)
   GtkFileFilter * filter_svg;
   GtkFileFilter * filter_png;
 
-  dialog = gtk_file_chooser_dialog_new ("Export",
+  dialog = gtk_file_chooser_dialog_new (_("Export"),
                                         GTK_WINDOW(window),
                                         GTK_FILE_CHOOSER_ACTION_SAVE,
                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -212,7 +220,7 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
 {
   GtkWidget *dialog;
   GtkWidget *window = GET_OBJECT("window");
-  dialog = gtk_file_chooser_dialog_new ("Save",
+  dialog = gtk_file_chooser_dialog_new (_("Save"),
                                         GTK_WINDOW(window),
                                         GTK_FILE_CHOOSER_ACTION_SAVE,
                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -227,8 +235,10 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
       g_free (game_file);
       game_file = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
       game_format = dialog_selected_format (dialog);
+      gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
       if (game_format != HEX_AUTO)
         hex_save_sgf (game, game_format, game_file);
+      update_window_title();
     }
   gtk_widget_destroy (dialog);
 }
@@ -240,7 +250,7 @@ ui_signal_open (GtkMenuItem * item, gpointer data)
   GtkWidget *window = GET_OBJECT("window");
   char * filename;
 
-  dialog = gtk_file_chooser_dialog_new ("Open",
+  dialog = gtk_file_chooser_dialog_new (_("Open"),
                                         GTK_WINDOW(window),
                                         GTK_FILE_CHOOSER_ACTION_OPEN,
                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -255,6 +265,8 @@ ui_signal_open (GtkMenuItem * item, gpointer data)
     {
       Hexboard * board = HEXBOARD (hexboard);
       filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      game_file = filename;
+      update_window_title();
       hex_free (game);
       game_format = dialog_selected_format (dialog);
       game = hex_load_sgf (game_format, filename);
@@ -367,6 +379,21 @@ update_hexboard_sensitive (void)
   boolean sensitivep;
   sensitivep = (history_marker == undo_history_marker && !hex_end_of_game_p (game));
   gtk_widget_set_sensitive (hexboard, sensitivep);
+}
+
+static void
+update_window_title (void)
+{
+  GtkWidget * window = GET_OBJECT ("window");
+  const size_t size = 256;
+  static gchar * buffer = NULL;
+  g_free (buffer);
+  buffer = g_malloc (size);
+  if (game_file != NULL)
+    snprintf (buffer, size, UI_WINDOW_TITLE, game_file);
+  else
+    snprintf (buffer, size, UI_WINDOW_TITLE, _("New game"));
+  gtk_window_set_title (GTK_WINDOW (window), buffer);
 }
 
 
@@ -583,6 +610,7 @@ ui_run (void)
   gtk_container_add (GTK_CONTAINER(box), hexboard);
   gtk_widget_show_all (window);
   update_history_buttons();
+  update_window_title();
   gtk_main();
   hex_free (game);
 }

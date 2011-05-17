@@ -1,6 +1,7 @@
 /* conn-hex.c --- Hex game logic */
 
 /* Copyright (C) 2011 David Vázquez Púa  */
+/* Copyright (C) 2011 Mario Castelán Castro */
 
 /* This file is part of Connection.
  *
