@@ -248,13 +248,24 @@ ui_signal_save_as (GtkMenuItem * item, gpointer data)
 void
 ui_signal_open_update_preview (GtkFileChooser *dialog, Hexboard * board)
 {
-  /* TODO: Uncomment and do work this when SGF support is finished. */
-  /* gchar * filename = gtk_file_chooser_get_filename (dialog);
-   * hex_t game = hex_load_sgf (game_format, filename);
-   * size_t size = hex_size (game);
-   * hexboard_set_size (board, size);
-   * hex_to_widget (board, game);
-   * hex_free (game); */
+  gchar * filename; 
+  hex_t game;
+  filename = gtk_file_chooser_get_filename (dialog);
+  if (filename != NULL)
+    game = hex_load_sgf (game_format, filename);
+  else
+    game = NULL;
+  
+  if (game != NULL)
+    {
+      size_t size = hex_size (game);
+      hexboard_set_size (board, size);
+      hex_to_widget (board, game);
+      gtk_widget_set_visible (GTK_WIDGET(board), TRUE);
+      hex_free (game);
+    }
+  else
+    gtk_widget_set_visible (GTK_WIDGET(board), FALSE);
 }
 
 void

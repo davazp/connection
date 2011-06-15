@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <setjmp.h>
 #include <string.h>
 #include <assert.h>
 
@@ -899,6 +900,8 @@ static int sgferrpos;
 
 static int lookahead;
 
+static jmp_buf parser_caller;
+
 
 /* ---------------------------------------------------------------- */
 /*                       Parsing primitives                         */
@@ -910,7 +913,7 @@ parse_error(const char *msg, int arg)
 {
   fprintf(stderr, msg, arg);
   fprintf(stderr, "\n");
-  exit(EXIT_FAILURE);
+  longjmp (parser_caller, arg);
 }
 
 
@@ -927,7 +930,7 @@ static void
 match(int expected)
 {
   if (lookahead != expected)
-    parse_error("expected: %c", expected);
+    parse_error("expected: %c", 2);
   else
     nexttoken();
 }
@@ -941,7 +944,7 @@ static void
 propident(char *buffer, int size)
 {
   if (lookahead == EOF || !isupper(lookahead))
-    parse_error("Expected an upper case letter.", 0);
+    parse_error("Expected an upper case letter.", 2);
 
   while (lookahead != EOF && isalpha(lookahead)) {
     if (isupper(lookahead) && size > 1) {
@@ -1044,7 +1047,8 @@ gametree(SGFNode **p, SGFNode *parent, int mode)
   else
     for (;;) {
       if (lookahead == EOF) {
-	parse_error("Empty file?", 0);
+        /* Don't call sgfFreeNode */
+	parse_error("Empty file?", 1);
 	break;
       }
       if (lookahead == '(') {
@@ -1077,112 +1081,6 @@ gametree(SGFNode **p, SGFNode *parent, int mode)
 
 
 /*
- * Fuseki readers
- * Reads an SGF file for extract_fuseki in a compact way
- */
-
-static void
-gametreefuseki(SGFNode **p, SGFNode *parent, int mode,
-	       int moves_per_game, int i)
-{
-  if (mode == STRICT_SGF)
-    match('(');
-  else
-    for (;;) {
-      if (lookahead == EOF) {
-	parse_error("Empty file?", 0);
-	break;
-      }
-      if (lookahead == '(') {
-	while (lookahead == '(')
-	  nexttoken();
-	if (lookahead == ';')
-	  break;
-      }
-      nexttoken();
-    }
-
-  /* The head is parsed */
-  {
-
-    SGFNode *head = sgfNewNode();
-    SGFNode *last;
-    head->parent = parent;
-    *p = head;
-
-    last = sequence(head);
-    p = &last->child;
-    while (lookahead == '(') {
-      if (last->props
-	  && (last->props->name == SGFB || last->props->name == SGFW))
-	i++;
-      /* break after number_of_moves moves in SGF file */
-      if (i >= moves_per_game) {
-	last->child = NULL;
-	last->next = NULL;
-	break;
-      }
-      else {
-	gametreefuseki(p, last, mode, moves_per_game, i);
-	p = &((*p)->next);
-      }
-    }
-    if (mode == STRICT_SGF)
-      match(')');
-  }
-}
-
-SGFNode *
-readsgffilefuseki(const char *filename, int moves_per_game)
-{
-  SGFNode *root;
-  int tmpi = 0;
-
-  if (strcmp(filename, "-") == 0)
-    sgffile = stdin;
-  else
-    sgffile = fopen(filename, "r");
-
-  if (!sgffile)
-    return NULL;
-
-
-  nexttoken();
-  gametreefuseki(&root, NULL, LAX_SGF, moves_per_game, 0);
-
-  fclose(sgffile);
-
-  if (sgferr) {
-    fprintf(stderr, "Parse error: %s at position %d\n", sgferr, sgferrpos);
-    sgfFreeNode(root);
-    return NULL;
-  }
-
-  /* perform some simple checks on the file */
-  if (!sgfGetIntProperty(root, "GM", &tmpi)) {
-    if (VERBOSE_WARNINGS)
-      fprintf(stderr, "Couldn't find the game type (GM) attribute!\n");
-  }
-  else if (tmpi != 1) {
-    fprintf(stderr, "SGF file might be for game other than go: %d\n", tmpi);
-    fprintf(stderr, "Trying to load anyway.\n");
-  }
-
-  if (!sgfGetIntProperty(root, "FF", &tmpi)) {
-    if (VERBOSE_WARNINGS)
-      fprintf(stderr, "Can not determine SGF spec version (FF)!\n");
-  }
-  else if ((tmpi < 3 || tmpi > 4) && VERBOSE_WARNINGS)
-    fprintf(stderr, "Unsupported SGF spec version: %d\n", tmpi);
-
-  return root;
-}
-
-
-
-
-
-/*
  * Wrapper around readsgf which reads from a file rather than a string.
  * Returns NULL if file will not open, or some other parsing error.
  * Filename "-" means read from stdin, and leave it open when done.
@@ -1204,6 +1102,13 @@ readsgffile(const char *filename)
 
 
   nexttoken();
+  switch (setjmp (parser_caller))
+    {
+    case 2:
+      sgfFreeNode(root);
+    case 1:
+      return NULL;
+    }
   gametree(&root, NULL, LAX_SGF);
 
   if (sgffile != stdin)
