@@ -392,9 +392,9 @@ hex_save_sgf (hex_t hex, hex_format_t format, char * filename)
       int i = hex->history[k][0];
       int j = hex->size-1-hex->history[k][1];
       if (format == HEX_SGF)
-        fprintf (file, ";%c[%c%c]", k%2 ? 'W' : 'B', 'a' + i, 'a' + j);
+        fprintf (file, ";%c[%c%i]", k%2 ? 'W' : 'B', 'a' + i, j);
       else
-        fprintf (file, ";%c[%c%i]", k%2 ? 'B' : 'W', 'a' + i, j);
+        fprintf (file, ";%c[%c%c]", k%2 ? 'B' : 'W', 'a' + i, 'a' + j);
     }
   fputc (')', file);
   fclose (file);
@@ -465,9 +465,9 @@ hex_load_sgf (hex_format_t format, char * filename)
         return NULL;
 
       if (format == HEX_SGF)
-        x = hex_decode_sgf_pos (move[1]);
-      else if (format == HEX_LG_SGF)
         x = atoi (move+1);
+      else if (format == HEX_LG_SGF)
+        x = hex_decode_sgf_pos (move[1]);
       if (errno || x >= hex->size)
         return NULL;
 
