@@ -1150,8 +1150,8 @@ Public License instead of this License.  But first, please read
   <object class="GtkAdjustment" id="adjustment-hex-size">
     <property name="lower">4</property>
     <property name="upper">16</property>
-    <property name="value">13</property>
     <property name="step_increment">1</property>
+    <property name="value">13</property>
   </object>
   <object class="GtkDialog" id="window-preferences">
     <property name="border_width">5</property>
@@ -1389,5 +1389,100 @@ Public License instead of this License.  But first, please read
     <property name="upper">65535</property>
     <property name="step_increment">1</property>
     <property name="value">5222</property>
+  </object>
+  <object class="GtkWindow" id="window-multiplayer">
+    <property name="title" translatable="yes">XMPP Multiplayer</property>
+    <property name="modal">True</property>
+    <property name="transient_for">window</property>
+    <signal name="delete_event" handler="gtk_widget_hide"/>
+    <child>
+      <object class="GtkVBox" id="vbox3">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkTreeView" id="treeview1">
+            <property name="width_request">600</property>
+            <property name="height_request">300</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="model">xmpp-users-list-store</property>
+          </object>
+          <packing>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHButtonBox" id="hbuttonbox1">
+            <property name="visible">True</property>
+            <property name="spacing">3</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="button8">
+                <property name="label" translatable="yes">Cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button7">
+                <property name="label" translatable="yes">Invite</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button6">
+                <property name="label" translatable="yes">Play</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="xalign">0.49000000953674316</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">3</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListStore" id="xmpp-users-list-store">
+    <columns>
+      <!-- column-name User -->
+      <column type="gchararray"/>
+      <!-- column-name Status -->
+      <column type="gint"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">David</col>
+        <col id="1">0</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Mario</col>
+        <col id="1">1</col>
+      </row>
+    </data>
   </object>
 </interface>

@@ -566,6 +566,8 @@ ui_signal_disconnect (GtkMenuItem * item, gpointer data)
 void
 ui_signal_network (GtkMenuItem * item, gpointer data)
 {
+  GtkWidget * xmpp = GET_OBJECT ("window-multiplayer");
+  gtk_widget_show_all (GTK_WIDGET(xmpp));
 }
 
 
